@@ -56,7 +56,7 @@ func validateSizes(sizes []string) error {
 	}
 	return nil
 }
-func ValidateConfig(c *Config) error {
+func (c *Config) Validate() error {
 
 	if err := validateSizes(c.Machines); err != nil {
 		return err
@@ -72,7 +72,7 @@ func ParseConfig(b []byte) (*Config, error) {
 		return nil, errors.Wrap(err, "invalid json")
 	}
 
-	if err := ValidateConfig(c); err != nil {
+	if err := c.Validate(); err != nil {
 		return nil, errors.Wrap(err, "invalid config")
 	}
 
