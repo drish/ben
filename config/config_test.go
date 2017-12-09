@@ -7,30 +7,73 @@ import (
 )
 
 func TestConfig_ReadConfig(t *testing.T) {
+
 	t.Run("missing ben.json", func(t *testing.T) {
-		c, err := ReadConfig()
+		c, err := ReadConfig("a")
 		assert.Nil(t, c)
 		assert.NotNil(t, err)
 	})
 }
 
 func TestConfig_Machines(t *testing.T) {
+
 	t.Run("valid", func(t *testing.T) {
+
+		e := Environment{
+			Version: "1.9",
+			Runtime: "go",
+			Machine: "s4",
+		}
 		c := Config{
-			Machines: []string{"s1", "s2"},
-			Runtimes: []string{},
+			Environments: []Environment{e},
 		}
 		err := c.Validate()
 		assert.Nil(t, err)
 	})
 
 	t.Run("invalid", func(t *testing.T) {
+
+		e := Environment{
+			Version: "1.9",
+			Runtime: "go",
+			Machine: "s9",
+		}
+
 		c := Config{
-			Machines: []string{"s1", "s9"},
-			Runtimes: []string{},
+			Environments: []Environment{e},
 		}
 		err := c.Validate()
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "invalid machine size: s9")
+		assert.Equal(t, err.Error(), "invalid machine size s9")
+	})
+}
+
+func TestConfig_Runtimes(t *testing.T) {
+
+	t.Run("valid", func(t *testing.T) {
+		e := Environment{
+			Version: "1.9",
+			Runtime: "go",
+			Machine: "s4",
+		}
+		c := Config{
+			Environments: []Environment{e},
+		}
+		err := c.Validate()
+		assert.Nil(t, err)
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		e := Environment{
+			Version: "1.3",
+			Runtime: "ruby",
+			Machine: "s1",
+		}
+		c := Config{
+			Environments: []Environment{e},
+		}
+		err := c.Validate()
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "invalid runtime ruby")
 	})
 }

@@ -4,21 +4,12 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"github.com/drish/ben/utils"
 	"github.com/pkg/errors"
 )
 
-// representation of json config file
-type Config struct {
-	Runtimes []string `json:runtimes`
-	Machines []string `json:machines`
-}
-
 var supportedRuntimes = []string{
 	"go",
-	"node",
-	"ruby",
-	"clojure",
-	"python",
 }
 
 var hyperSizes = []string{
@@ -34,33 +25,56 @@ var hyperSizes = []string{
 	"l3",
 }
 
-func contains(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
+type Environment struct {
+	Machine string
+	Version string
+	Runtime string
 }
 
-func validateRuntime() error {
+// representation of json config file
+type Config struct {
+	Environments []Environment `json:environments`
+}
+
+// checks if the provided runtimes are supported
+func validateRuntimes(runtimes []string) error {
+	for _, r := range runtimes {
+		if !utils.Contains(r, supportedRuntimes) {
+			return errors.New("invalid runtime " + r)
+		}
+	}
 	return nil
 }
 
 // checks if provided machine size is on list of supported sizes
-func validateSizes(sizes []string) error {
+func validateMachineSizes(sizes []string) error {
 	for _, s := range sizes {
-		if !contains(s, hyperSizes) {
-			return errors.New("invalid machine size: " + s)
+		if !utils.Contains(s, hyperSizes) {
+			return errors.New("invalid machine size " + s)
 		}
 	}
 	return nil
 }
+
+// validates all configuration provided
 func (c *Config) Validate() error {
 
-	if err := validateSizes(c.Machines); err != nil {
+	var sizes []string
+	for _, env := range c.Environments {
+		sizes = append(sizes, env.Machine)
+	}
+	if err := validateMachineSizes(sizes); err != nil {
 		return err
 	}
+
+	var runtimes []string
+	for _, env := range c.Environments {
+		runtimes = append(runtimes, env.Runtime)
+	}
+	if err := validateRuntimes(runtimes); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -69,19 +83,19 @@ func ParseConfig(b []byte) (*Config, error) {
 	c := &Config{}
 
 	if err := json.Unmarshal(b, c); err != nil {
-		return nil, errors.Wrap(err, "invalid json")
+		return nil, errors.Wrap(err, "unmarshalling error")
 	}
 
 	if err := c.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid config")
+		return nil, errors.Wrap(err, "validation error")
 	}
 
 	return c, nil
 }
 
 // reads the file at `path`
-func ReadConfig() (*Config, error) {
-	b, err := ioutil.ReadFile("ben.json")
+func ReadConfig(path string) (*Config, error) {
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "file open failed")
 	}

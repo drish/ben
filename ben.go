@@ -1,17 +1,35 @@
 package ben
 
-import "fmt"
+import (
+	"fmt"
 
-type Runner struct{}
+	"github.com/drish/ben/config"
+)
 
-func (r *Runner) Run() {
-	r.run()
+type Runner struct {
+	config *config.Config
 }
 
-func (r *Runner) run() {
-	fmt.Println("ben started")
+func (r *Runner) Run() error {
+	defer fmt.Println()
+	fmt.Println("ben started !")
+	err := r.BuildRuntimes()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func New() *Runner {
-	return &Runner{}
+func (r *Runner) BuildRuntimes() error {
+	fmt.Println(r.config)
+	// for _, r := range r.config. {
+	// 	fmt.Println("builing : ", r)
+	// }
+	return nil
+}
+
+func New(c *config.Config) *Runner {
+	return &Runner{
+		config: c,
+	}
 }
