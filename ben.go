@@ -11,20 +11,29 @@ type Runner struct {
 }
 
 func (r *Runner) Run() error {
-	defer fmt.Println()
+
 	fmt.Println("ben started !")
-	err := r.BuildRuntimes()
-	if err != nil {
-		return err
+
+	for _, env := range r.config.Environments {
+		image := env.Runtime + ":" + env.Version
+
+		if env.Machine == "local" {
+			builder := &LocalBuilder{
+				Image: image,
+			}
+			r.BuildRuntime(builder)
+		} else {
+			builder := &HyperBuilder{
+				Image: image,
+			}
+			r.BuildRuntime(builder)
+		}
 	}
 	return nil
 }
 
-func (r *Runner) BuildRuntimes() error {
-	fmt.Println(r.config)
-	// for _, r := range r.config. {
-	// 	fmt.Println("builing : ", r)
-	// }
+func (r *Runner) BuildRuntime(b RuntimeBuilder) error {
+	b.PullImage()
 	return nil
 }
 

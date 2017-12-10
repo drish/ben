@@ -21,7 +21,7 @@ func TestConfig_Machines(t *testing.T) {
 
 		e := Environment{
 			Version: "1.9",
-			Runtime: "go",
+			Runtime: "golang",
 			Machine: "s4",
 		}
 		c := Config{
@@ -35,7 +35,7 @@ func TestConfig_Machines(t *testing.T) {
 
 		e := Environment{
 			Version: "1.9",
-			Runtime: "go",
+			Runtime: "golang",
 			Machine: "s9",
 		}
 
@@ -53,7 +53,7 @@ func TestConfig_Runtimes(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		e := Environment{
 			Version: "1.9",
-			Runtime: "go",
+			Runtime: "golang",
 			Machine: "s4",
 		}
 		c := Config{

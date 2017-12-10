@@ -9,10 +9,10 @@ import (
 )
 
 var supportedRuntimes = []string{
-	"go",
+	"golang",
 }
 
-var hyperSizes = []string{
+var machineSizes = []string{
 	"s1", // 1 CPU  64MB
 	"s2", // 1 CPU  128MB
 	"s3", // 1 CPU  256MB
@@ -23,6 +23,7 @@ var hyperSizes = []string{
 	"l1",
 	"l2",
 	"l3",
+	"local",
 }
 
 type Environment struct {
@@ -49,7 +50,7 @@ func validateRuntimes(runtimes []string) error {
 // checks if provided machine size is on list of supported sizes
 func validateMachineSizes(sizes []string) error {
 	for _, s := range sizes {
-		if !utils.Contains(s, hyperSizes) {
+		if !utils.Contains(s, machineSizes) {
 			return errors.New("invalid machine size " + s)
 		}
 	}
@@ -59,6 +60,7 @@ func validateMachineSizes(sizes []string) error {
 // validates all configuration provided
 func (c *Config) Validate() error {
 
+	// validates machine sizes
 	var sizes []string
 	for _, env := range c.Environments {
 		sizes = append(sizes, env.Machine)
@@ -67,6 +69,7 @@ func (c *Config) Validate() error {
 		return err
 	}
 
+	// validates runtimes
 	var runtimes []string
 	for _, env := range c.Environments {
 		runtimes = append(runtimes, env.Runtime)
