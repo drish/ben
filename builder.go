@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
@@ -48,6 +50,8 @@ func (l *LocalBuilder) PullImage() error {
 	rd := bufio.NewReader(out)
 
 	for {
+		// TODO: not read lines
+		// not read lines, add spinner til done
 		str, _, err := rd.ReadLine()
 		if err != nil {
 			if err == io.EOF {
@@ -63,6 +67,37 @@ func (l *LocalBuilder) PullImage() error {
 // SetupContainer creates the container locally
 func (l *LocalBuilder) SetupContainer() error {
 	fmt.Println("Setting up container for:", l.Image)
+
+	cli, err := client.NewEnvClient()
+
+	if err != nil {
+		return errors.New("failed to connect to local docker")
+	}
+
+	config := &container.Config{
+		Image: l.Image,
+		Volumes: map[string]struct{}{
+			"/tmp": {},
+		},
+		OpenStdin: true,
+	}
+
+	bindPath, err := os.Getwd()
+	if err != nil {
+		return errors.New("failed to get current directory")
+	}
+
+	hostConfig := &container.HostConfig{
+		Binds: []string{bindPath + ":/tmp"},
+	}
+
+	c, err := cli.ContainerCreate(context.Background(), config, hostConfig, nil, "namerino")
+
+	if err != nil {
+		return errors.New("failed creating container")
+	}
+
+	fmt.Println("Created container: ", c.ID)
 	return nil
 }
 
