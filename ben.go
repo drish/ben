@@ -33,7 +33,16 @@ func (r *Runner) Run() error {
 }
 
 func (r *Runner) BuildRuntime(b RuntimeBuilder) error {
-	b.PullImage()
+	err := b.PullImage()
+	if err != nil {
+		return err
+	}
+
+	err = b.SetupContainer()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

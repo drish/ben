@@ -17,13 +17,13 @@ func TestBuilder_LocalBuilder_PullImage(t *testing.T) {
 	})
 }
 
-func TestBuilder_HyperBuilder_PullImage(t *testing.T) {
+func TestBuilder_LocalBuilder_SetupContainer(t *testing.T) {
 
 	t.Run("valid", func(t *testing.T) {
-		builder := &HyperBuilder{
+		builder := &LocalBuilder{
 			Image: "golang:1.4",
 		}
-		err := builder.PullImage()
+		err := builder.SetupContainer()
 		assert.Nil(t, err)
 	})
 }

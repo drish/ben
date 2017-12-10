@@ -11,9 +11,11 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// interface that defines how to pull images
+// interface that defines how to build runtime environments
 type RuntimeBuilder interface {
 	PullImage() error
+	SetupContainer() error
+	Cleanup() error
 }
 
 // builds the image on azure
@@ -60,8 +62,30 @@ func (l *LocalBuilder) PullImage() error {
 	return nil
 }
 
+// creates the container
+func (l *LocalBuilder) SetupContainer() error {
+	fmt.Println("Setting up container for:", l.Image)
+	return nil
+}
+
+// cleanup environment after
+func (l *LocalBuilder) Cleanup() error {
+	return nil
+}
+
 // builds the image on hyper
 func (b *HyperBuilder) PullImage() error {
 	fmt.Println("Pulling the image on hyper.sh")
+	return nil
+	return nil
+}
+
+// creates the container
+func (h *HyperBuilder) SetupContainer() error {
+	return nil
+}
+
+// cleanup environment after
+func (h *HyperBuilder) Cleanup() error {
 	return nil
 }
