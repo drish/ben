@@ -11,28 +11,26 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// interface that defines how to build runtime environments
+// RuntimeBuilder is the interface that defines how to build runtime environments
 type RuntimeBuilder interface {
 	PullImage() error
 	SetupContainer() error
 	Cleanup() error
 }
 
-// builds the image on azure
-type AzureBuilder struct {
-}
-
+// HyperBuilder is the Hyper.sh struct for dealing with hyper runtimes
 type HyperBuilder struct {
 	Image string
 	ID    string
 }
 
+// LocalBuilder is the local struct for dealing with local runtimes
 type LocalBuilder struct {
 	Image string
 	ID    string
 }
 
-// builds the image locally
+// PullImage pulls the image on locally
 func (l *LocalBuilder) PullImage() error {
 	fmt.Println("Pulling the image locally:", l.Image)
 
@@ -62,30 +60,30 @@ func (l *LocalBuilder) PullImage() error {
 	return nil
 }
 
-// creates the container
+// SetupContainer creates the container locally
 func (l *LocalBuilder) SetupContainer() error {
 	fmt.Println("Setting up container for:", l.Image)
 	return nil
 }
 
-// cleanup environment after
+// Cleanup cleans up the environment
 func (l *LocalBuilder) Cleanup() error {
 	return nil
 }
 
-// builds the image on hyper
+// PullImage pulls the image on hyper
 func (b *HyperBuilder) PullImage() error {
 	fmt.Println("Pulling the image on hyper.sh")
 	return nil
 	return nil
 }
 
-// creates the container
-func (h *HyperBuilder) SetupContainer() error {
+// SetupContainer creates the container on hyper
+func (b *HyperBuilder) SetupContainer() error {
 	return nil
 }
 
-// cleanup environment after
-func (h *HyperBuilder) Cleanup() error {
+// Cleanup cleans up the environment on hyper
+func (b *HyperBuilder) Cleanup() error {
 	return nil
 }

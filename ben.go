@@ -6,10 +6,12 @@ import (
 	"github.com/drish/ben/config"
 )
 
+// Runner defines the high-level runner struct
 type Runner struct {
 	config *config.Config
 }
 
+// Run is the entrypoint method
 func (r *Runner) Run() error {
 
 	fmt.Println("ben started !")
@@ -21,17 +23,22 @@ func (r *Runner) Run() error {
 			builder := &LocalBuilder{
 				Image: image,
 			}
-			r.BuildRuntime(builder)
+			if err := r.BuildRuntime(builder); err != nil {
+				return err
+			}
 		} else {
 			builder := &HyperBuilder{
 				Image: image,
 			}
-			r.BuildRuntime(builder)
+			if err := r.BuildRuntime(builder); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
+// BuildRuntime builds the appropriate runtime
 func (r *Runner) BuildRuntime(b RuntimeBuilder) error {
 	err := b.PullImage()
 	if err != nil {
@@ -46,6 +53,7 @@ func (r *Runner) BuildRuntime(b RuntimeBuilder) error {
 	return nil
 }
 
+// New is the Runner initializer
 func New(c *config.Config) *Runner {
 	return &Runner{
 		config: c,
