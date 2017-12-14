@@ -7,7 +7,7 @@ import (
 
 	"github.com/drish/ben"
 	"github.com/drish/ben/config"
-	"github.com/fatih/color"
+	"github.com/drish/ben/utils"
 )
 
 var version = ""
@@ -17,16 +17,14 @@ func main() {
 
 	c, err := config.ReadConfig("ben.json")
 	if err != nil {
-		output(err.Error())
-		os.Exit(1)
+		utils.Fatal(err)
 	}
 
-	ben := ben.New(c)
-	ben.Run()
-}
+	err = ben.New(c).Run()
 
-func output(s string) {
-	color.Red(s)
+	if err != nil {
+		utils.Fatal(err)
+	}
 }
 
 // trappy

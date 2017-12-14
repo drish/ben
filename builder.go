@@ -3,7 +3,6 @@ package ben
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +10,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/fatih/color"
+	"github.com/pkg/errors"
+	spin "github.com/tj/go-spin"
 )
 
 // RuntimeBuilder is the interface that defines how to build runtime environments
@@ -36,12 +38,14 @@ type LocalBuilder struct {
 func (l *LocalBuilder) PullImage() error {
 	fmt.Println("Pulling the image locally:", l.Image)
 
-	cli, err := client.NewEnvClient()
+	defer fmt.Println()
 
+	cli, err := client.NewEnvClient()
 	if err != nil {
 		return errors.New("failed to connect to local docker")
 	}
 
+	// TODO: pull images from private repos
 	out, err := cli.ImagePull(context.Background(), l.Image, types.ImagePullOptions{})
 	if err != nil {
 		return errors.New("failed pulling image")
@@ -49,18 +53,22 @@ func (l *LocalBuilder) PullImage() error {
 
 	rd := bufio.NewReader(out)
 
+	s := spin.New()
 	for {
-		// TODO: not read lines
-		// lines, add spinner til done
-		str, _, err := rd.ReadLine()
+		_, _, err := rd.ReadLine()
 		if err != nil {
 			if err == io.EOF {
+				s.Reset()
+				fmt.Printf("\r  \033[36mpreparing image \033[m %s ", color.GreenString("done !"))
 				return nil
 			}
+			s.Reset()
+			fmt.Printf("\r  \033[36mpreparing image \033[m %s ", color.RedString("failed !"))
 			return errors.New("failed reading output")
 		}
-		fmt.Println(string(str))
+		fmt.Printf("\r  \033[36mpreparing image \033[m %s ", s.Next())
 	}
+
 	return nil
 }
 
@@ -71,7 +79,7 @@ func (l *LocalBuilder) SetupContainer() error {
 	cli, err := client.NewEnvClient()
 
 	if err != nil {
-		return errors.New("failed to connect to local docker")
+		return errors.Wrap(err, "failed to connect to local docker")
 	}
 
 	config := &container.Config{
@@ -84,7 +92,7 @@ func (l *LocalBuilder) SetupContainer() error {
 
 	bindPath, err := os.Getwd()
 	if err != nil {
-		return errors.New("failed to get current directory")
+		return errors.Wrap(err, "failed to get current directory")
 	}
 
 	hostConfig := &container.HostConfig{
@@ -92,9 +100,8 @@ func (l *LocalBuilder) SetupContainer() error {
 	}
 
 	c, err := cli.ContainerCreate(context.Background(), config, hostConfig, nil, "namerino")
-
 	if err != nil {
-		return errors.New("failed creating container")
+		return errors.Wrap(err, "failed creating container")
 	}
 
 	fmt.Println("Created container: ", c.ID)

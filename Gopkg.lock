@@ -74,6 +74,12 @@
   version = "v1.1.4"
 
 [[projects]]
+  name = "github.com/tj/go-spin"
+  packages = ["."]
+  revision = "30574f5fadef1aa5c61d4c42e936785af9f03ada"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","proxy"]
@@ -88,6 +94,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "693d3a28078ea3b11abb44885fe4a755cb42b416c51bf81aa60c2fdee367a987"
+  inputs-digest = "42c4237b1b760ae80ee9f96513091cafc76dd150c93fbd0670852b34ab6c36f5"
   solver-name = "gps-cdcl"
   solver-version = 1
