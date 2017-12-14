@@ -51,7 +51,7 @@ func (l *LocalBuilder) PullImage() error {
 
 	for {
 		// TODO: not read lines
-		// not read lines, add spinner til done
+		// lines, add spinner til done
 		str, _, err := rd.ReadLine()
 		if err != nil {
 			if err == io.EOF {
@@ -109,7 +109,6 @@ func (l *LocalBuilder) Cleanup() error {
 // PullImage pulls the image on hyper
 func (b *HyperBuilder) PullImage() error {
 	fmt.Println("Pulling the image on hyper.sh")
-	return nil
 	return nil
 }
 
