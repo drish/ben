@@ -40,12 +40,23 @@ func (r *Runner) Run() error {
 
 // BuildRuntime builds the appropriate runtime
 func (r *Runner) BuildRuntime(b RuntimeBuilder) error {
-	err := b.PullImage()
+
+	err := b.Init()
+	if err != nil {
+		return err
+	}
+
+	err = b.PullImage()
 	if err != nil {
 		return err
 	}
 
 	err = b.SetupContainer()
+	if err != nil {
+		return err
+	}
+
+	err = b.Cleanup()
 	if err != nil {
 		return err
 	}
