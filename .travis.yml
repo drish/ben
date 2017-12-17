@@ -11,4 +11,4 @@ script:
   - curl -sL https://github.com/golang/dep/releases/download/v0.3.1/dep-linux-amd64 > dep
   - chmod +x ./dep
   - ./dep ensure
-  - go test -v . ./config
+  - go test -v . ./config ./builders
