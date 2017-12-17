@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -24,4 +25,9 @@ func Exists(path string) bool {
 func Fatal(err error) {
 	fmt.Fprintf(os.Stderr, "\n     %s %s\n\n", color.RedString("Error:"), err)
 	os.Exit(1)
+}
+
+// Converts a string into a docker command
+func PrepareCommand(command string) []string {
+	return strings.Split(command, " ")
 }
