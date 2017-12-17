@@ -152,12 +152,25 @@ func (l *LocalBuilder) Benchmark() error {
 // Cleanup cleans up containers used for benchmarking
 func (l *LocalBuilder) Cleanup() error {
 
-	err := l.Client.ContainerRemove(context.Background(), l.ID, types.ContainerRemoveOptions{})
+	s := spin.New()
+	spin := true
+
+	go func() {
+		for spin == true {
+			time.Sleep(100 * time.Millisecond)
+			fmt.Printf("\r  \033[36mcleaning up container and volumes\033[m %s \n", s.Next())
+		}
+	}()
+
+	err := l.Client.ContainerRemove(context.Background(), l.ID, types.ContainerRemoveOptions{RemoveVolumes: true})
+
 	if err != nil {
 		return errors.Wrap(err, "failed removing container")
 	}
 
-	fmt.Printf("\r  \033[36mremoving container \033[m %s %s \n", l.ID[:10], color.GreenString("done !"))
+	spin = false
+	fmt.Printf("\r  \033[36mcleaning up container and volumes\033[m %s \n", color.GreenString(" done !"))
+
 	return nil
 }
 
