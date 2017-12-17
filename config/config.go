@@ -8,10 +8,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Runtimes ben is able to parse
 var supportedRuntimes = []string{
 	"golang",
 }
 
+// Machine sizes, both for local runtimes and for Hyper.sh
 var machineSizes = []string{
 	"s1", // 1 CPU  64MB
 	"s2", // 1 CPU  128MB
@@ -26,15 +28,16 @@ var machineSizes = []string{
 	"local",
 }
 
+// representation of json config file
 type Environment struct {
 	Machine string
 	Version string
 	Runtime string
+	Command string
 }
 
-// representation of json config file
 type Config struct {
-	Environments []Environment `json:environments`
+	Environments []Environment `json:"environments"`
 }
 
 // checks if the provided runtimes are supported
