@@ -3,6 +3,7 @@ package ben
 import (
 	"fmt"
 
+	"github.com/drish/ben/builders"
 	"github.com/drish/ben/config"
 )
 
@@ -20,14 +21,14 @@ func (r *Runner) Run() error {
 		image := env.Runtime + ":" + env.Version
 
 		if env.Machine == "local" {
-			builder := &LocalBuilder{
+			builder := &builders.LocalBuilder{
 				Image: image,
 			}
 			if err := r.BuildRuntime(builder); err != nil {
 				return err
 			}
 		} else {
-			builder := &HyperBuilder{
+			builder := &builders.HyperBuilder{
 				Image: image,
 			}
 			if err := r.BuildRuntime(builder); err != nil {
@@ -39,7 +40,7 @@ func (r *Runner) Run() error {
 }
 
 // BuildRuntime builds the appropriate runtime
-func (r *Runner) BuildRuntime(b RuntimeBuilder) error {
+func (r *Runner) BuildRuntime(b builders.RuntimeBuilder) error {
 
 	err := b.Init()
 	if err != nil {

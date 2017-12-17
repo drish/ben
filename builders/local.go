@@ -1,4 +1,4 @@
-package ben
+package builders
 
 import (
 	"bufio"
@@ -14,22 +14,6 @@ import (
 	"github.com/pkg/errors"
 	spin "github.com/tj/go-spin"
 )
-
-// RuntimeBuilder is the interface that defines how to build runtime environments
-type RuntimeBuilder interface {
-	Init() error
-	PullImage() error
-	SetupContainer() error
-	Cleanup() error
-}
-
-// HyperBuilder is the Hyper.sh struct for dealing with hyper runtimes
-type HyperBuilder struct {
-	Image string
-	ID    string
-	Name  string
-	Size  string
-}
 
 // LocalBuilder is the local struct for dealing with local runtimes
 type LocalBuilder struct {
@@ -124,26 +108,5 @@ func (l *LocalBuilder) Cleanup() error {
 	}
 
 	fmt.Printf("\r  \033[36mremoving container \033[m %s %s \n", l.ID[:10], color.GreenString("done !"))
-	return nil
-}
-
-// Init is a simple start message
-func (b *HyperBuilder) Init() error {
-	fmt.Printf("\r  \033[36mSetting up environment on Hyper.sh for \033[m%s \n", b.Image)
-	return nil
-}
-
-// PullImage pulls the image on hyper
-func (b *HyperBuilder) PullImage() error {
-	return nil
-}
-
-// SetupContainer creates the container on hyper
-func (b *HyperBuilder) SetupContainer() error {
-	return nil
-}
-
-// Cleanup cleans up the environment on hyper
-func (b *HyperBuilder) Cleanup() error {
 	return nil
 }
