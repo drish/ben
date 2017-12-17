@@ -15,7 +15,7 @@ type Runner struct {
 // Run is the entrypoint method
 func (r *Runner) Run() error {
 
-	fmt.Println("ben started !")
+	fmt.Printf("\n\r  ben started ! \n\n")
 
 	for _, env := range r.config.Environments {
 		image := env.Runtime + ":" + env.Version
@@ -42,6 +42,8 @@ func (r *Runner) Run() error {
 // BuildRuntime builds the appropriate runtime
 func (r *Runner) BuildRuntime(b builders.RuntimeBuilder) error {
 
+	displayResults := true
+
 	err := b.Init()
 	if err != nil {
 		return err
@@ -57,9 +59,18 @@ func (r *Runner) BuildRuntime(b builders.RuntimeBuilder) error {
 		return err
 	}
 
+	err = b.Benchmark()
+	if err != nil {
+		return err
+	}
+
 	err = b.Cleanup()
 	if err != nil {
 		return err
+	}
+
+	if displayResults {
+		b.Display()
 	}
 
 	return nil

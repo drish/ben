@@ -26,7 +26,15 @@ func (b *HyperBuilder) SetupContainer() error {
 	return nil
 }
 
+func (h *HyperBuilder) Benchmark() error {
+	return nil
+}
+
 // Cleanup cleans up the environment on hyper
 func (b *HyperBuilder) Cleanup() error {
+	return nil
+}
+
+func (h *HyperBuilder) Display() error {
 	return nil
 }

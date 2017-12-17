@@ -6,4 +6,6 @@ type RuntimeBuilder interface {
 	PullImage() error
 	SetupContainer() error
 	Cleanup() error
+	Benchmark() error
+	Display() error
 }

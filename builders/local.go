@@ -5,7 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -17,14 +20,16 @@ import (
 
 // LocalBuilder is the local struct for dealing with local runtimes
 type LocalBuilder struct {
-	Image  string
-	ID     string
-	Name   string
-	Client *client.Client
+	Image   string
+	ID      string
+	Name    string
+	Client  *client.Client
+	Results string
 }
 
 // Init initializes necessary vars
 func (l *LocalBuilder) Init() error {
+
 	fmt.Printf("\r  \033[36msetting up local environment for \033[m%s \n", l.Image)
 
 	cli, err := client.NewEnvClient()
@@ -39,8 +44,6 @@ func (l *LocalBuilder) Init() error {
 
 // PullImage pulls the image on locally
 func (l *LocalBuilder) PullImage() error {
-
-	// defer fmt.Println()
 
 	// TODO: pull images from private repos
 	out, err := l.Client.ImagePull(context.Background(), l.Image, types.ImagePullOptions{})
@@ -75,7 +78,9 @@ func (l *LocalBuilder) SetupContainer() error {
 		Volumes: map[string]struct{}{
 			"/tmp": {},
 		},
-		OpenStdin: true,
+		WorkingDir: "/tmp",
+		OpenStdin:  true,
+		Cmd:        []string{"go", "test", "-bench=."},
 	}
 
 	bindPath, err := os.Getwd()
@@ -99,7 +104,52 @@ func (l *LocalBuilder) SetupContainer() error {
 	return nil
 }
 
-// Cleanup cleans up the environment
+func (l *LocalBuilder) Benchmark() error {
+
+	defer fmt.Println()
+
+	s := spin.New()
+	spin := true
+
+	go func() {
+		for spin == true {
+			time.Sleep(100 * time.Millisecond)
+			fmt.Printf("\r  \033[36mrunning benchmark \033[m %s", s.Next())
+		}
+	}()
+
+	// start container
+	err := l.Client.ContainerStart(context.Background(), l.ID, types.ContainerStartOptions{})
+	if err != nil {
+		return errors.Wrap(err, "couldn't start container")
+	}
+
+	// wait until container exists
+	_, errC := l.Client.ContainerWait(context.Background(), l.ID)
+	if err := errC; err != nil {
+		log.Fatal(err)
+	}
+
+	spin = false
+	fmt.Printf("\r  \033[36mrunning benchmark \033[m %s", color.GreenString("done !"))
+
+	// store container logs
+	reader, err := l.Client.ContainerLogs(context.Background(), l.ID, types.ContainerLogsOptions{ShowStdout: true,
+		ShowStderr: true})
+
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch logs")
+	}
+
+	info, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch logs")
+	}
+	l.Results = string(info)
+	return nil
+}
+
+// Cleanup cleans up containers used for benchmarking
 func (l *LocalBuilder) Cleanup() error {
 
 	err := l.Client.ContainerRemove(context.Background(), l.ID, types.ContainerRemoveOptions{})
@@ -108,5 +158,11 @@ func (l *LocalBuilder) Cleanup() error {
 	}
 
 	fmt.Printf("\r  \033[36mremoving container \033[m %s %s \n", l.ID[:10], color.GreenString("done !"))
+	return nil
+}
+
+func (l *LocalBuilder) Display() error {
+	fmt.Printf("\r  \033[36mdisplaying results\033[m \n")
+	fmt.Println(l.Results)
 	return nil
 }
