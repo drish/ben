@@ -26,7 +26,8 @@ func (b *HyperBuilder) SetupContainer() error {
 	return nil
 }
 
-func (h *HyperBuilder) Benchmark() error {
+// Benchmark runs the benchmark command
+func (b *HyperBuilder) Benchmark() error {
 	return nil
 }
 
@@ -35,6 +36,7 @@ func (b *HyperBuilder) Cleanup() error {
 	return nil
 }
 
-func (h *HyperBuilder) Display() error {
+// Display writes the benchmark outputs to stdout
+func (b *HyperBuilder) Display() error {
 	return nil
 }

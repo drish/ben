@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"time"
 
@@ -59,7 +58,7 @@ func (l *LocalBuilder) PullImage() error {
 		if err != nil {
 			if err == io.EOF {
 				s.Reset()
-				fmt.Printf("\r  \033[36mpreparing image \033[m %s \n", color.GreenString("done !"))
+				fmt.Printf("\r  \033[36mpulling image \033[m %s \n", color.GreenString("done !"))
 				return nil
 			}
 			s.Reset()
@@ -99,18 +98,19 @@ func (l *LocalBuilder) SetupContainer() error {
 		return errors.Wrap(err, "failed creating container")
 	}
 
-	fmt.Printf("\r  \033[36mcreated container \033[m %s %s \n", c.ID[:10], color.GreenString("done !"))
+	fmt.Printf("\r  \033[36mcreating container \033[m %s (%s) \n", color.GreenString("done !"), c.ID[:10])
 	l.ID = c.ID
 	return nil
 }
 
+// Benchmark runs the benchmark command
 func (l *LocalBuilder) Benchmark() error {
 
 	defer fmt.Println()
 
+	// spins ftw
 	s := spin.New()
 	spin := true
-
 	go func() {
 		for spin == true {
 			time.Sleep(100 * time.Millisecond)
@@ -127,7 +127,7 @@ func (l *LocalBuilder) Benchmark() error {
 	// wait until container exists
 	_, errC := l.Client.ContainerWait(context.Background(), l.ID)
 	if err := errC; err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to wait for container status")
 	}
 
 	spin = false
@@ -174,6 +174,7 @@ func (l *LocalBuilder) Cleanup() error {
 	return nil
 }
 
+// Display writes the benchmark output to stdout
 func (l *LocalBuilder) Display() error {
 	fmt.Printf("\r  \033[36mdisplaying results\033[m \n")
 	fmt.Println(l.Results)
