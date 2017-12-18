@@ -4,10 +4,11 @@ import "fmt"
 
 // HyperBuilder is the Hyper.sh struct for dealing with hyper runtimes
 type HyperBuilder struct {
-	Image string
-	ID    string
-	Name  string
-	Size  string
+	Image   string
+	ID      string
+	Name    string
+	Size    string
+	Command []string
 }
 
 // Init is a simple start message

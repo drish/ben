@@ -27,7 +27,15 @@ func Fatal(err error) {
 	os.Exit(1)
 }
 
-// Converts a string into a docker command
+func PrepareImage(name, version string) string {
+	return name + ":" + version
+}
+
+// PrepareCommand prepares the benchmark command
+// if empty returns default command
 func PrepareCommand(command string) []string {
+	if command == "" {
+		return []string{"go", "test", "-bench=."}
+	}
 	return strings.Split(command, " ")
 }

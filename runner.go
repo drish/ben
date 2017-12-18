@@ -5,9 +5,10 @@ import (
 
 	"github.com/drish/ben/builders"
 	"github.com/drish/ben/config"
+	"github.com/drish/ben/utils"
 )
 
-// Runner defines the high-level runner struct
+// Runner defines the top-level runner struct
 type Runner struct {
 	config *config.Config
 }
@@ -18,18 +19,21 @@ func (r *Runner) Run() error {
 	fmt.Printf("\n\r  ben started ! \n\n")
 
 	for _, env := range r.config.Environments {
-		image := env.Runtime + ":" + env.Version
+		image := utils.PrepareImage(env.Runtime, env.Version)
+		command := utils.PrepareCommand(env.Command)
 
 		if env.Machine == "local" {
 			builder := &builders.LocalBuilder{
-				Image: image,
+				Image:   image,
+				Command: command,
 			}
 			if err := r.BuildRuntime(builder); err != nil {
 				return err
 			}
 		} else {
 			builder := &builders.HyperBuilder{
-				Image: image,
+				Image:   image,
+				Command: command,
 			}
 			if err := r.BuildRuntime(builder); err != nil {
 				return err
@@ -42,30 +46,26 @@ func (r *Runner) Run() error {
 // BuildRuntime builds the appropriate runtime
 func (r *Runner) BuildRuntime(b builders.RuntimeBuilder) error {
 
+	// TODO: add ben -d cli opt
 	displayResults := true
 
-	err := b.Init()
-	if err != nil {
+	if err := b.Init(); err != nil {
 		return err
 	}
 
-	err = b.PullImage()
-	if err != nil {
+	if err := b.PullImage(); err != nil {
 		return err
 	}
 
-	err = b.SetupContainer()
-	if err != nil {
+	if err := b.SetupContainer(); err != nil {
 		return err
 	}
 
-	err = b.Benchmark()
-	if err != nil {
+	if err := b.Benchmark(); err != nil {
 		return err
 	}
 
-	err = b.Cleanup()
-	if err != nil {
+	if err := b.Cleanup(); err != nil {
 		return err
 	}
 
