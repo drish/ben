@@ -133,6 +133,7 @@ func (l *LocalBuilder) Benchmark() error {
 	}
 
 	spin = false
+	s.Reset()
 	fmt.Printf("\r  \033[36mrunning benchmark \033[m %s (%s)", color.GreenString("done !"), strings.Join(l.Command, " "))
 
 	// store container logs
@@ -174,6 +175,7 @@ func (l *LocalBuilder) Cleanup() error {
 	}
 
 	spin = false
+	s.Reset()
 	fmt.Printf("\r  \033[36mcleaning up container and volumes\033[m %s \n", color.GreenString(" done !"))
 
 	return nil
