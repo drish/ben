@@ -14,9 +14,9 @@ type Runner struct {
 }
 
 // Run is the entrypoint method
-func (r *Runner) Run() error {
+func (r *Runner) Run(output string, display bool) error {
 
-	fmt.Printf("\n\r  ben started ! \n\n")
+	fmt.Printf("\n\r  %s\n\n", "ben started !")
 
 	for _, env := range r.config.Environments {
 		image := utils.PrepareImage(env.Runtime, env.Version)
@@ -27,7 +27,7 @@ func (r *Runner) Run() error {
 				Image:   image,
 				Command: command,
 			}
-			if err := r.BuildRuntime(builder); err != nil {
+			if err := r.BuildRuntime(builder, output, display); err != nil {
 				return err
 			}
 		} else {
@@ -35,7 +35,7 @@ func (r *Runner) Run() error {
 				Image:   image,
 				Command: command,
 			}
-			if err := r.BuildRuntime(builder); err != nil {
+			if err := r.BuildRuntime(builder, output, display); err != nil {
 				return err
 			}
 		}
@@ -44,10 +44,7 @@ func (r *Runner) Run() error {
 }
 
 // BuildRuntime builds the appropriate runtime
-func (r *Runner) BuildRuntime(b builders.RuntimeBuilder) error {
-
-	// TODO: add ben -d cli opt
-	displayResults := true
+func (r *Runner) BuildRuntime(b builders.RuntimeBuilder, output string, display bool) error {
 
 	if err := b.Init(); err != nil {
 		return err
@@ -69,8 +66,10 @@ func (r *Runner) BuildRuntime(b builders.RuntimeBuilder) error {
 		return err
 	}
 
-	if displayResults {
+	if display {
 		b.Display()
+	} else {
+		fmt.Println()
 	}
 
 	return nil
