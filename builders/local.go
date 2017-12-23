@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -15,7 +16,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
-	spin "github.com/tj/go-spin"
+	spinner "github.com/tj/go-spin"
 )
 
 // LocalBuilder is the local struct for dealing with local runtimes
@@ -31,7 +32,7 @@ type LocalBuilder struct {
 // Init initializes necessary variables
 func (l *LocalBuilder) Init() error {
 
-	fmt.Printf("\r  \033[36msetting up local environment for \033[m%s \n", l.Image)
+	fmt.Printf("  \033[36msetting up local environment for \033[m%s \n", l.Image)
 
 	cli, err := client.NewEnvClient()
 
@@ -46,6 +47,21 @@ func (l *LocalBuilder) Init() error {
 // PullImage pulls the image on locally
 func (l *LocalBuilder) PullImage() error {
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	s := spinner.New()
+	spin := true
+	go func() {
+		defer wg.Done()
+		for spin == true {
+			time.Sleep(100 * time.Millisecond)
+			fmt.Printf("\r  \033[36mpulling image \033[m %s", color.MagentaString(s.Next()))
+		}
+		fmt.Printf("\r  \033[36mpulling image \033[m %s\n", color.GreenString("done !"))
+
+	}()
+
 	// TODO: pull images from private repos
 	out, err := l.Client.ImagePull(context.Background(), l.Image, types.ImagePullOptions{})
 	if err != nil {
@@ -53,25 +69,25 @@ func (l *LocalBuilder) PullImage() error {
 	}
 
 	rd := bufio.NewReader(out)
-
-	s := spin.New()
 	for {
 		_, _, err := rd.ReadLine()
 		if err != nil {
 			if err == io.EOF {
 				s.Reset()
-				fmt.Printf("\r  \033[36mpulling image \033[m %s \n", color.GreenString("done !"))
+				spin = false
+				wg.Wait()
 				return nil
 			}
 			s.Reset()
-			fmt.Printf("\r  \033[36mpulling image \033[m %s ", color.RedString("failed !"))
+			spin = false
+			fmt.Printf("\r  \033[36mpulling image \033[m %s\n", color.RedString("failed !"))
 			return errors.New("failed reading output")
 		}
-		fmt.Printf("\r  \033[36mpulling image \033[m %s ", s.Next())
 	}
 }
 
 // SetupContainer creates the container locally
+// it setups a volume with a local dir to the /tmp in the container
 func (l *LocalBuilder) SetupContainer() error {
 
 	config := &container.Config{
@@ -100,7 +116,7 @@ func (l *LocalBuilder) SetupContainer() error {
 		return errors.Wrap(err, "failed creating container")
 	}
 
-	fmt.Printf("\r  \033[36mcreating container \033[m %s (%s) \n", color.GreenString("done !"), c.ID[:10])
+	fmt.Printf("  \033[36mcreating container \033[m %s (%s) \n", color.GreenString("done !"), c.ID[:10])
 	l.ID = c.ID
 	return nil
 }
@@ -108,16 +124,19 @@ func (l *LocalBuilder) SetupContainer() error {
 // Benchmark runs the benchmark command
 func (l *LocalBuilder) Benchmark() error {
 
-	defer fmt.Println()
+	var wg sync.WaitGroup
+	wg.Add(1)
 
-	// spins ftw
-	s := spin.New()
+	s := spinner.New()
 	spin := true
 	go func() {
+		defer wg.Done()
 		for spin == true {
-			time.Sleep(100 * time.Millisecond)
-			fmt.Printf("\r  \033[36mrunning benchmark \033[m %s (%s)", s.Next(), strings.Join(l.Command, " "))
+			time.Sleep(200 * time.Millisecond)
+			fmt.Printf("\r  \033[36mrunning benchmark \033[m %s (%s)", color.MagentaString(s.Next()), strings.Join(l.Command, " "))
 		}
+		fmt.Printf("\r  \033[36mrunning benchmark \033[m %s (%s)", color.GreenString("done !"), strings.Join(l.Command, " "))
+
 	}()
 
 	// start container
@@ -132,14 +151,9 @@ func (l *LocalBuilder) Benchmark() error {
 		return errors.Wrap(err, "failed to wait for container status")
 	}
 
-	spin = false
-	s.Reset()
-	fmt.Printf("\r  \033[36mrunning benchmark \033[m %s (%s)", color.GreenString("done !"), strings.Join(l.Command, " "))
-
-	// store container logs
+	// store container stdout
 	reader, err := l.Client.ContainerLogs(context.Background(), l.ID, types.ContainerLogsOptions{ShowStdout: true,
 		ShowStderr: true})
-
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch logs")
 	}
@@ -148,21 +162,17 @@ func (l *LocalBuilder) Benchmark() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch logs")
 	}
+
 	l.Results = string(info)
+	spin = false
+	s.Reset()
+
+	wg.Wait()
 	return nil
 }
 
 // Cleanup cleans up containers used for benchmarking
 func (l *LocalBuilder) Cleanup() error {
-
-	s := spin.New()
-	spin := true
-	go func() {
-		for spin == true {
-			time.Sleep(100 * time.Millisecond)
-			fmt.Printf("\r  \033[36mcleaning up container and volumes\033[m %s \n", s.Next())
-		}
-	}()
 
 	if l.ID == "" {
 		return errors.New("Container doesn't exist.")
@@ -174,17 +184,14 @@ func (l *LocalBuilder) Cleanup() error {
 		return errors.Wrap(err, "failed removing container")
 	}
 
-	spin = false
-	s.Reset()
-	fmt.Printf("\r  \033[36mcleaning up container and volumes\033[m %s \n", color.GreenString(" done !"))
-
+	fmt.Println()
+	fmt.Printf("  \033[36mcleaning up container and volumes\033[m %s \n", color.GreenString(" done !"))
 	return nil
 }
 
 // Display writes the benchmark output to stdout
 func (l *LocalBuilder) Display() error {
-
-	fmt.Printf("\r  \033[36mdisplaying results\033[m \n")
+	fmt.Printf("  \033[36mdisplaying results\033[m \n")
 	fmt.Println(l.Results)
 	return nil
 }
