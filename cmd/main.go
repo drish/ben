@@ -9,7 +9,6 @@ import (
 
 	"github.com/drish/ben"
 	"github.com/drish/ben/config"
-
 	"github.com/drish/ben/utils"
 )
 
@@ -33,15 +32,12 @@ func main() {
 	displayFlag := flag.Bool("d", false, "display benchmark results to stdout")
 	flag.Parse()
 
-	fmt.Println(*displayFlag)
-
 	c, err := config.ReadConfig("ben.json")
 	if err != nil {
 		utils.Fatal(err)
 	}
 
 	err = ben.New(c).Run(*outputFlag, *displayFlag)
-
 	if err != nil {
 		utils.Fatal(err)
 	}
@@ -54,7 +50,7 @@ func trap() {
 
 	go func() {
 		<-sigs
-		println("\n")
+		fmt.Println()
 		os.Exit(1)
 	}()
 }

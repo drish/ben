@@ -16,15 +16,24 @@ type Runner struct {
 // Run is the entrypoint method
 func (r *Runner) Run(output string, display bool) error {
 
-	fmt.Printf("\n\r  %s\n\n", "ben started !")
+	utils.Welcome()
 
 	for _, env := range r.config.Environments {
+
+		before := utils.PrepareBeforeCommands(env.Before)
 		image := utils.PrepareImage(env.Runtime, env.Version)
+
+		// set default command
+		if env.Command == "" {
+			env.Command = config.DefaultCommand(env.Runtime)
+		}
+
 		command := utils.PrepareCommand(env.Command)
 
 		if env.Machine == "local" {
 			builder := &builders.LocalBuilder{
 				Image:   image,
+				Before:  before,
 				Command: command,
 			}
 			if err := r.BuildRuntime(builder, output, display); err != nil {
@@ -33,6 +42,7 @@ func (r *Runner) Run(output string, display bool) error {
 		} else {
 			builder := &builders.HyperBuilder{
 				Image:   image,
+				Before:  before,
 				Command: command,
 			}
 			if err := r.BuildRuntime(builder, output, display); err != nil {
@@ -50,7 +60,11 @@ func (r *Runner) BuildRuntime(b builders.RuntimeBuilder, output string, display 
 		return err
 	}
 
-	if err := b.PullImage(); err != nil {
+	if err := b.SetupImage(); err != nil {
+		return err
+	}
+
+	if err := b.RunBefore(); err != nil {
 		return err
 	}
 
