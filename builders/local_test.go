@@ -41,6 +41,21 @@ func TestBuilder_LocalBuilder_SetupImage(t *testing.T) {
 	})
 }
 
+func TestBuilder_LocalBuilder_RunBefore(t *testing.T) {
+
+	t.Run("run before commands", func(t *testing.T) {
+		builder := &LocalBuilder{
+			Image:  "golang:1.7",
+			Before: []string{"apt-get update"},
+		}
+		builder.Init()
+		_ = builder.SetupImage()
+		err := builder.RunBefore()
+		assert.NotNil(t, err)
+		builder.Cleanup()
+	})
+}
+
 func TestBuilder_LocalBuilder_SetupContainer(t *testing.T) {
 
 	t.Run("image does not exist", func(t *testing.T) {
@@ -85,6 +100,6 @@ func TestBuilder_LocalBuilder_Cleanup(t *testing.T) {
 
 		err := builder.Cleanup()
 		assert.NotNil(t, err)
-		assert.Equal(t, strings.Contains(err.Error(), "Container doesn't exist."), true)
+		assert.Equal(t, strings.Contains(err.Error(), "Container doesn't exist"), true)
 	})
 }
