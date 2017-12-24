@@ -163,7 +163,7 @@ func (l *LocalBuilder) RunBefore() error {
 		if err = l.removeContainer(c.ID); err != nil {
 			return err
 		}
-		return errors.New("'before' commands failed !")
+		return errors.New("'before' commands failed")
 	}
 
 	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
@@ -284,7 +284,7 @@ func (l *LocalBuilder) Benchmark() error {
 func (l *LocalBuilder) Cleanup() error {
 
 	if l.ID == "" {
-		return errors.New("Container doesn't exist.")
+		return errors.New("Container doesn't exist")
 	}
 	// try to remove benchmark container
 	err := l.Client.ContainerRemove(context.Background(), l.ID, types.ContainerRemoveOptions{RemoveVolumes: true})
