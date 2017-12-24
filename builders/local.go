@@ -22,11 +22,10 @@ import (
 
 // LocalBuilder is the local struct for managing with local runtimes
 type LocalBuilder struct {
-	Image          string   // runtime base image
-	Command        []string // benchmark command
-	Before         []string // commands to run before bench
-	ID             string   // benchmark container id
-	Name           string
+	Image          string         // runtime base image
+	Command        []string       // benchmark command
+	Before         []string       // commands to run before bench
+	ID             string         // benchmark container id
 	Client         *client.Client // docker client
 	Results        string         // benchmark output
 	BenchmarkImage string         // if `before` is set a new image is created
