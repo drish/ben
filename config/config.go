@@ -8,12 +8,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Runtimes ben is able to parse
+// in case `command` is left blank on json file
+// set a default command
+var defaultCommands = map[string]string{
+	"golang": "go test -bench=.",
+}
+
+// runtimes ben is able to parse
+// TODO: supportedComparationRuntimes
 var supportedRuntimes = []string{
 	"golang",
 }
 
-// Machine sizes, both for local runtimes and for Hyper.sh
+// Machine sizes, both for local runtime and for Hyper.sh
 var machineSizes = []string{
 	"s1", // 1 CPU  64MB
 	"s2", // 1 CPU  128MB
@@ -30,10 +37,11 @@ var machineSizes = []string{
 
 // representation of json config file
 type Environment struct {
-	Machine string
-	Version string
-	Runtime string
-	Command string
+	Machine string   // hyper.sh machine size, ie: s1
+	Version string   // runtime version, ie 1.9
+	Runtime string   // runtime name, ie: golang, ruby, jruby
+	Command string   // benchmark command
+	Before  []string // commands to run on container before benchmark is done
 }
 
 type Config struct {
@@ -41,6 +49,7 @@ type Config struct {
 }
 
 // checks if the provided runtimes are supported
+// TOOD: fix it
 func validateRuntimes(runtimes []string) error {
 	for _, r := range runtimes {
 		if !utils.Contains(r, supportedRuntimes) {
@@ -106,4 +115,9 @@ func ReadConfig(path string) (*Config, error) {
 		return nil, errors.Wrap(err, "file open failed")
 	}
 	return ParseConfig(b)
+}
+
+// DefaultCommand returns the default command for the specified runtime
+func DefaultCommand(runtime string) string {
+	return defaultCommands[runtime]
 }

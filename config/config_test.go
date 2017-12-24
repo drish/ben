@@ -77,3 +77,7 @@ func TestConfig_Runtimes(t *testing.T) {
 		assert.Equal(t, err.Error(), "invalid runtime ruby")
 	})
 }
+
+// func TestConfig_DefaultCommand(t *testing.T) {
+
+// }
