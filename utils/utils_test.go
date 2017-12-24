@@ -16,24 +16,20 @@ func TestContains(t *testing.T) {
 
 func TestPrepareCommand(t *testing.T) {
 
-	t.Run("command is empty should default to base command", func(t *testing.T) {
+	t.Run("command is empty", func(t *testing.T) {
 		command := ""
 
-		defaultCommand := []string{"go", "test", "-bench=."}
-
 		c := PrepareCommand(command)
-		assert.Equal(t, c, defaultCommand)
+		assert.Equal(t, len(c), 1)
+		assert.Equal(t, c, []string{""})
 	})
 
 	t.Run("command is not empty", func(t *testing.T) {
-		command := "go test -v . ./config"
+		command := "go test -v -bench=."
 
 		c := PrepareCommand(command)
-		assert.Equal(t, c[0], "go")
-		assert.Equal(t, c[1], "test")
-		assert.Equal(t, c[2], "-v")
-		assert.Equal(t, c[3], ".")
-		assert.Equal(t, c[4], "./config")
+		assert.Equal(t, len(c), 4)
+		assert.Equal(t, c, []string{"go", "test", "-v", "-bench=."})
 	})
 }
 

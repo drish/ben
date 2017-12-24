@@ -2,11 +2,25 @@ package utils
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func RandString(n int) string {
+	rand.Seed(time.Now().UnixNano())
+
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
 
 func Contains(a string, list []string) bool {
 	for _, b := range list {
@@ -27,6 +41,7 @@ func Fatal(err error) {
 	os.Exit(1)
 }
 
+// PrepareImage simply setups the image name
 func PrepareImage(name, version string) string {
 	return name + ":" + version
 }
@@ -34,8 +49,22 @@ func PrepareImage(name, version string) string {
 // PrepareCommand prepares the benchmark command
 // if empty returns default command
 func PrepareCommand(command string) []string {
-	if command == "" {
-		return []string{"go", "test", "-bench=."}
-	}
 	return strings.Split(command, " ")
+}
+
+// PrepareBeforeCommands sets up before commands
+// example
+// bash -c "command1 && command2"
+func PrepareBeforeCommands(commands []string) []string {
+
+	if len(commands) == 0 {
+		return []string{}
+	}
+
+	prepared := strings.Join(commands, " && ")
+	return []string{"bash", "-c", prepared}
+}
+
+func Welcome() {
+	fmt.Printf("\n\r  %s\n\n", "ben started !")
 }

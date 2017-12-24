@@ -19,14 +19,14 @@ func TestBuilder_LocalBuilder_Init(t *testing.T) {
 	})
 }
 
-func TestBuilder_LocalBuilder_PullImage(t *testing.T) {
+func TestBuilder_LocalBuilder_SetupImage(t *testing.T) {
 
 	t.Run("image does not exist", func(t *testing.T) {
 		builder := &LocalBuilder{
 			Image: "golang:3.123123",
 		}
 		builder.Init()
-		err := builder.PullImage()
+		err := builder.SetupImage()
 		assert.NotNil(t, err)
 		assert.Equal(t, strings.Contains(err.Error(), "golang:3.123123 not found"), true)
 	})
@@ -36,7 +36,7 @@ func TestBuilder_LocalBuilder_PullImage(t *testing.T) {
 			Image: "golang:1.4",
 		}
 		builder.Init()
-		err := builder.PullImage()
+		err := builder.SetupImage()
 		assert.Nil(t, err)
 	})
 }
@@ -58,7 +58,7 @@ func TestBuilder_LocalBuilder_SetupContainer(t *testing.T) {
 			Image: "golang:1.4",
 		}
 		builder.Init()
-		builder.PullImage()
+		builder.SetupImage()
 		err := builder.SetupContainer()
 		assert.Nil(t, err)
 	})

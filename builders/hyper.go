@@ -8,6 +8,7 @@ type HyperBuilder struct {
 	ID      string
 	Name    string
 	Size    string
+	Before  []string
 	Command []string
 }
 
@@ -18,7 +19,12 @@ func (b *HyperBuilder) Init() error {
 }
 
 // PullImage pulls the image on hyper
-func (b *HyperBuilder) PullImage() error {
+func (b *HyperBuilder) SetupImage() error {
+	return nil
+}
+
+// RunBefore run before commands if specified
+func (b *HyperBuilder) RunBefore() error {
 	return nil
 }
 
