@@ -47,13 +47,12 @@ func PrepareImage(name, version string) string {
 }
 
 // PrepareCommand prepares the benchmark command
-// if empty returns default command
 func PrepareCommand(command string) []string {
 	return strings.Split(command, " ")
 }
 
 // PrepareBeforeCommands sets up before commands
-// example
+// example output
 // bash -c "command1 && command2"
 func PrepareBeforeCommands(commands []string) []string {
 

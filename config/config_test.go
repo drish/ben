@@ -78,6 +78,7 @@ func TestConfig_Runtimes(t *testing.T) {
 	})
 }
 
-// func TestConfig_DefaultCommand(t *testing.T) {
-
-// }
+func TestConfig_DefaultCommand(t *testing.T) {
+	command := DefaultCommand("golang")
+	assert.Equal(t, command, "go test -bench=.")
+}
