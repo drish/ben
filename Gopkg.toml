@@ -27,3 +27,11 @@
 [[constraint]]
   name = "github.com/tj/go-spin"
   version = "1.1.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/xeipuuv/gojsonschema"
+
+[[constraint]]
+  name = "github.com/hyperhq/hypercli"
+  version = "1.10.16"

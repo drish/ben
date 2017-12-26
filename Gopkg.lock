@@ -8,6 +8,18 @@
   version = "v0.4.5"
 
 [[projects]]
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/cloudfoundry-incubator/candiedyaml"
+  packages = ["."]
+  revision = "a41693b7b7afb422c7ecb1028458ab27da047bbb"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -26,6 +38,12 @@
   version = "v1.13.1"
 
 [[projects]]
+  name = "github.com/docker/engine-api"
+  packages = ["types/strslice"]
+  revision = "3d1601b9d2436a70b0dfc045a23f6503d19195df"
+  version = "v0.4.0"
+
+[[projects]]
   name = "github.com/docker/go-connections"
   packages = ["nat","sockets","tlsconfig"]
   revision = "3ede32e2033de7505e6500d6c868c2b9ed9f169d"
@@ -42,6 +60,30 @@
   packages = ["."]
   revision = "570b54cabe6b8eb0bc2dfce68d964677d63b5260"
   version = "v1.5.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/flynn/go-shlex"
+  packages = ["."]
+  revision = "3f9db97f856818214da2e1057f8ad84803971cff"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hyperhq/hyper-api"
+  packages = ["client","client/transport","client/transport/cancellable","signature","types","types/blkiodev","types/container","types/filters","types/network","types/reference","types/registry","types/strslice","types/time","types/versions"]
+  revision = "18c77d3f9fe0abebb41b45c12f383ecac46f4ff1"
+
+[[projects]]
+  name = "github.com/hyperhq/hypercli"
+  packages = ["pkg/urlutil"]
+  revision = "860cca29de31268664bf04bd7a87c3ca2c1d675e"
+  version = "v1.10.16"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hyperhq/libcompose"
+  packages = ["config", "utils", "project", "lookup", "yaml", "labels"]
+  revision = "15d3a105140f968f5d4f62d2f44afd22a24a98fb"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -81,19 +123,43 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/xeipuuv/gojsonpointer"
+  packages = ["."]
+  revision = "6fe8760cad3569743d51ddbb243b26f8456742dc"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/xeipuuv/gojsonreference"
+  packages = ["."]
+  revision = "e02fc20de94c78484cd5ffb007f8af96be030a45"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/xeipuuv/gojsonschema"
+  packages = ["."]
+  revision = "59f99ebfe5f712a0055e321231fc3be94e4e00b2"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "d585fd2cc9195196078f516b69daff6744ef5e84"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","proxy"]
-  revision = "dc871a5d77e227f5bbf6545176ef3eeebf87e76e"
+  revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows"]
-  revision = "b8f5ef32195cae6470b728e8ca677f0dbed1a004"
+  revision = "83801418e1b59fb1880e363299581ee543af32ca"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "42c4237b1b760ae80ee9f96513091cafc76dd150c93fbd0670852b34ab6c36f5"
+  inputs-digest = "3b1ab4621834634752287bec14574376fb976c52ab64300f8cba29e0fcfe0df5"
   solver-name = "gps-cdcl"
   solver-version = 1
