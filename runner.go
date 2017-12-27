@@ -56,15 +56,13 @@ func (r *Runner) Run(output string, display bool) error {
 // BuildRuntime builds the appropriate runtime
 func (r *Runner) BuildRuntime(b builders.RuntimeBuilder, output string, display bool) error {
 
+	// sets up necessary variables
 	if err := b.Init(); err != nil {
 		return err
 	}
 
-	if err := b.SetupImage(); err != nil {
-		return err
-	}
-
-	if err := b.RunBefore(); err != nil {
+	// pulls base image, run before commands and create benchmark image
+	if err := b.PrepareImage(); err != nil {
 		return err
 	}
 

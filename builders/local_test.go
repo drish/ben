@@ -19,14 +19,14 @@ func TestBuilder_LocalBuilder_Init(t *testing.T) {
 	})
 }
 
-func TestBuilder_LocalBuilder_SetupImage(t *testing.T) {
+func TestBuilder_LocalBuilder_PrepareImage(t *testing.T) {
 
 	t.Run("image does not exist", func(t *testing.T) {
 		builder := &LocalBuilder{
 			Image: "golang:3.123123",
 		}
 		builder.Init()
-		err := builder.SetupImage()
+		err := builder.PrepareImage()
 		assert.NotNil(t, err)
 		assert.Equal(t, strings.Contains(err.Error(), "golang:3.123123 not found"), true)
 	})
@@ -36,23 +36,8 @@ func TestBuilder_LocalBuilder_SetupImage(t *testing.T) {
 			Image: "golang:1.4",
 		}
 		builder.Init()
-		err := builder.SetupImage()
+		err := builder.PrepareImage()
 		assert.Nil(t, err)
-	})
-}
-
-func TestBuilder_LocalBuilder_RunBefore(t *testing.T) {
-
-	t.Run("run before commands", func(t *testing.T) {
-		builder := &LocalBuilder{
-			Image:  "golang:1.7",
-			Before: []string{"apt-get update"},
-		}
-		builder.Init()
-		_ = builder.SetupImage()
-		err := builder.RunBefore()
-		assert.NotNil(t, err)
-		builder.Cleanup()
 	})
 }
 
@@ -60,12 +45,13 @@ func TestBuilder_LocalBuilder_SetupContainer(t *testing.T) {
 
 	t.Run("image does not exist", func(t *testing.T) {
 		builder := &LocalBuilder{
-			Image: "golang:2.999",
+			Image:   "golang:2.999",
+			Command: []string{"ls", "-lah"},
 		}
 		builder.Init()
 		err := builder.SetupContainer()
 		assert.NotNil(t, err)
-		assert.Equal(t, strings.Contains(err.Error(), "Error: No such image: golang:2.999"), true)
+		assert.Equal(t, strings.Contains(err.Error(), "benchmark image not prepared"), true)
 	})
 
 	t.Run("image exist", func(t *testing.T) {
@@ -73,7 +59,7 @@ func TestBuilder_LocalBuilder_SetupContainer(t *testing.T) {
 			Image: "golang:1.4",
 		}
 		builder.Init()
-		builder.SetupImage()
+		builder.PrepareImage()
 		err := builder.SetupContainer()
 		assert.Nil(t, err)
 	})
@@ -87,8 +73,8 @@ func TestBuilder_LocalBuilder_Cleanup(t *testing.T) {
 			Image: "golang:1.4",
 		}
 		builder.Init()
+		builder.PrepareImage()
 		builder.SetupContainer()
-
 		err := builder.Cleanup()
 		assert.Nil(t, err)
 	})
@@ -100,6 +86,6 @@ func TestBuilder_LocalBuilder_Cleanup(t *testing.T) {
 
 		err := builder.Cleanup()
 		assert.NotNil(t, err)
-		assert.Equal(t, strings.Contains(err.Error(), "Container doesn't exist"), true)
+		assert.Equal(t, strings.Contains(err.Error(), "container doesn't exist"), true)
 	})
 }

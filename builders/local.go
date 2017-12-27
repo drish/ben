@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -46,53 +46,8 @@ func (l *LocalBuilder) Init() error {
 	return nil
 }
 
-// SetupImage pulls the runtime image on locally
-// If `Before` is set, runs `Before` commands and create a new benchmark image
-func (l *LocalBuilder) SetupImage() error {
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	s := spinner.New()
-	spin := true
-	go func() {
-		defer wg.Done()
-		for spin == true {
-			time.Sleep(100 * time.Millisecond)
-			fmt.Printf("\r  \033[36mpulling image \033[m %s", color.MagentaString(s.Next()))
-		}
-		fmt.Printf("\r  \033[36mpulling image \033[m %s\n", color.GreenString("done !"))
-
-	}()
-
-	// TODO: pull images from private repos
-	out, err := l.Client.ImagePull(context.Background(), l.Image, types.ImagePullOptions{})
-	if err != nil {
-		return errors.Wrap(err, "failed pulling image")
-	}
-
-	rd := bufio.NewReader(out)
-	for {
-		_, _, err := rd.ReadLine()
-		if err != nil {
-			if err == io.EOF {
-				s.Reset()
-				spin = false
-				wg.Wait()
-				return nil
-			}
-			s.Reset()
-			spin = false
-			fmt.Printf("\r  \033[36mpulling image \033[m %s\n", color.RedString("failed !"))
-			return errors.New("failed reading output")
-		}
-	}
-}
-
-// RunBefore runs commands specificed on `Before` field on the json config file
-// creates a tmp container to run commands
-// and creates a new image based on that
-func (l *LocalBuilder) RunBefore() error {
+// run before commands if specified and create new image
+func (l *LocalBuilder) runBeforeCommands() error {
 
 	if len(l.Before) == 0 {
 		fmt.Printf(" \033[36m no commands to run before !\n\033[m")
@@ -105,27 +60,14 @@ func (l *LocalBuilder) RunBefore() error {
 	tmpName := utils.RandString(10)
 
 	config := &container.Config{
-		Image: l.Image,
-		Volumes: map[string]struct{}{
-			"/tmp": {},
-		},
+		Image:      l.BenchmarkImage,
 		WorkingDir: "/tmp",
 		OpenStdin:  true,
 		Cmd:        l.Before,
 	}
 
-	bindPath, err := os.Getwd()
-	if err != nil {
-		return errors.Wrap(err, "failed to get current directory")
-	}
-
-	// binds pwd into the container /tmp
-	hostConfig := &container.HostConfig{
-		Binds: []string{bindPath + ":/tmp"},
-	}
-
 	// create tmp container to run `before` commands
-	c, err := l.Client.ContainerCreate(context.Background(), config, hostConfig, nil, tmpName)
+	c, err := l.Client.ContainerCreate(context.Background(), config, nil, nil, tmpName)
 	if err != nil {
 		fmt.Printf("\r  \033[36mrunning before commands \033[m %s ", color.RedString("failed !"))
 		return errors.Wrap(err, "failed creating container")
@@ -139,36 +81,55 @@ func (l *LocalBuilder) RunBefore() error {
 			time.Sleep(100 * time.Millisecond)
 			fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)", color.MagentaString(s.Next()), strings.Join(l.Before, " "))
 		}
-		fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)\n", color.GreenString("done !"), strings.Join(l.Before, " "))
 	}()
 
 	// start tmp container
 	err = l.Client.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{})
 	if err != nil {
+		spin = false
+		wg.Wait()
 		return errors.Wrap(err, "couldn't start container")
 	}
 
 	// wait until container exits
 	exit, errC := l.Client.ContainerWait(context.Background(), c.ID)
 	if err := errC; err != nil {
+		spin = false
+		wg.Wait()
 		return errors.Wrap(err, "failed to wait for container status")
 	}
 
 	// if some command fails on tmp container
 	// shows error outputs
 	if exit != 0 {
+
+		spin = false
+		wg.Wait()
+
 		fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)\n", color.RedString("failed !"), strings.Join(l.Before, " "))
+
 		l.showOutput(c.ID)
 
 		if err = l.removeContainer(c.ID); err != nil {
-			return err
+			return errors.Wrap(err, "failed removing tmp container")
 		}
-		return errors.New("'before' commands failed")
+
+		_, err := l.Client.ImageRemove(context.Background(), l.BenchmarkImage, types.ImageRemoveOptions{})
+		if err != nil {
+			return errors.Wrap(err, "failed removing benchmark image")
+		}
+
+		return errors.New("running 'before' commands failed")
 	}
 
+	oldImage := l.BenchmarkImage
+
+	// create new image
 	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
 	_, err = l.Client.ContainerCommit(context.Background(), c.ID, types.ContainerCommitOptions{Reference: imageName})
 	if err != nil {
+		spin = false
+		wg.Wait()
 		return errors.Wrap(err, "failed to create benchmark image")
 	}
 
@@ -177,49 +138,62 @@ func (l *LocalBuilder) RunBefore() error {
 
 	// cleanup tmp container
 	if err = l.removeContainer(c.ID); err != nil {
+		spin = false
+		wg.Wait()
+
 		return err
+	}
+
+	// cleanup previous image
+	_, err = l.Client.ImageRemove(context.Background(), oldImage, types.ImageRemoveOptions{})
+	if err != nil {
+		spin = false
+		wg.Wait()
+
+		return errors.Wrap(err, "failed removing benchmark image")
 	}
 
 	spin = false
 	wg.Wait()
+
+	fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)\n", color.GreenString("done !"), strings.Join(l.Before, " "))
+
+	return nil
+}
+
+// PrepareImage pulls the base image and run `before` commands
+func (l *LocalBuilder) PrepareImage() error {
+
+	if err := l.pullImage(); err != nil {
+		return err
+	}
+
+	if err := l.setupBaseImage(); err != nil {
+		return err
+	}
+
+	if err := l.runBeforeCommands(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // SetupContainer creates the final benchmark container locally
-// it setups a volume with a local dir to the /tmp in the container
 func (l *LocalBuilder) SetupContainer() error {
 
-	var image string
-
-	// if before was set
-	// use the new prepared image as the benchmark container image
-	if len(l.Before) == 0 {
-		image = l.Image
-	} else {
-		image = l.BenchmarkImage
+	if l.BenchmarkImage == "" {
+		return errors.New("benchmark image not prepared")
 	}
 
 	config := &container.Config{
-		Image: image,
-		Volumes: map[string]struct{}{
-			"/tmp": {},
-		},
+		Image:      l.BenchmarkImage,
 		WorkingDir: "/tmp",
 		OpenStdin:  true,
 		Cmd:        l.Command,
 	}
 
-	bindPath, err := os.Getwd()
-	if err != nil {
-		return errors.Wrap(err, "failed to get current directory")
-	}
-
-	// binds pwd into the container /tmp
-	hostConfig := &container.HostConfig{
-		Binds: []string{bindPath + ":/tmp"},
-	}
-
-	c, err := l.Client.ContainerCreate(context.Background(), config, hostConfig, nil, "")
+	c, err := l.Client.ContainerCreate(context.Background(), config, nil, nil, "")
 	if err != nil {
 		fmt.Printf("\r  \033[36mcreating benchmark container \033[m %s ", color.RedString("failed !"))
 		return errors.Wrap(err, "failed creating benchmark container")
@@ -284,20 +258,19 @@ func (l *LocalBuilder) Benchmark() error {
 func (l *LocalBuilder) Cleanup() error {
 
 	if l.ID == "" {
-		return errors.New("Container doesn't exist")
+		return errors.New("container doesn't exist")
 	}
+
 	// try to remove benchmark container
 	err := l.Client.ContainerRemove(context.Background(), l.ID, types.ContainerRemoveOptions{RemoveVolumes: true})
 	if err != nil {
 		return errors.Wrap(err, "failed removing container")
 	}
 
-	// delete the bechmark image if it was created
-	if l.BenchmarkImage != "" {
-		_, err := l.Client.ImageRemove(context.Background(), l.BenchmarkImage, types.ImageRemoveOptions{})
-		if err != nil {
-			return errors.Wrap(err, "failed removing benchmark image")
-		}
+	// delete the image
+	_, err = l.Client.ImageRemove(context.Background(), l.BenchmarkImage, types.ImageRemoveOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed removing benchmark image")
 	}
 
 	fmt.Println()
@@ -309,6 +282,89 @@ func (l *LocalBuilder) Cleanup() error {
 func (l *LocalBuilder) Display() error {
 	fmt.Printf("  \033[36mdisplaying results\033[m \n")
 	fmt.Println(l.Results)
+	return nil
+}
+
+// pull runtime image
+func (l *LocalBuilder) pullImage() error {
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	s := spinner.New()
+	spin := true
+	go func() {
+		defer wg.Done()
+		for spin == true {
+			time.Sleep(100 * time.Millisecond)
+			fmt.Printf("\r  \033[36mpreparing image \033[m %s", color.MagentaString(s.Next()))
+		}
+		fmt.Printf("\r  \033[36mpreparing image \033[m %s\n", color.GreenString("done !"))
+
+	}()
+
+	// pulls runtime image
+	// TODO: pull images from private repos
+	out, err := l.Client.ImagePull(context.Background(), l.Image, types.ImagePullOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed preparing image")
+	}
+
+	rd := bufio.NewReader(out)
+	for {
+		_, _, err := rd.ReadLine()
+		if err != nil {
+			if err == io.EOF {
+				s.Reset()
+				spin = false
+				wg.Wait()
+				return nil
+			}
+			s.Reset()
+			spin = false
+			fmt.Printf("\r  \033[36mpreparing image \033[m %s\n", color.RedString("failed !"))
+			return errors.New("failed reading output")
+		}
+	}
+}
+
+// setup working dir and copy pwd dir into
+func (l *LocalBuilder) setupBaseImage() error {
+
+	config := &container.Config{
+		Image:      l.Image,
+		WorkingDir: "/tmp",
+		OpenStdin:  true,
+	}
+
+	// create tmp container
+	tmpName := "ben-tmp-" + utils.RandString(8)
+	c, err := l.Client.ContainerCreate(context.Background(), config, nil, nil, tmpName)
+	if err != nil {
+		return errors.Wrap(err, "failed creating container")
+	}
+
+	// copy pwd data into tmp container
+	cmd := []string{"docker", "cp", ".", c.ID + ":/tmp"}
+	_, err = exec.Command(cmd[0], cmd[1], cmd[2], cmd[3]).Output()
+	if err != nil {
+		return errors.Wrap(err, "failed to copy data into container")
+	}
+
+	// create new image
+	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
+	_, err = l.Client.ContainerCommit(context.Background(), c.ID, types.ContainerCommitOptions{Reference: imageName})
+	if err != nil {
+		return errors.Wrap(err, "failed to create benchmark image")
+	}
+
+	// cleanup tmp container
+	if err = l.removeContainer(c.ID); err != nil {
+		return err
+	}
+
+	// save image name
+	l.BenchmarkImage = imageName
+
 	return nil
 }
 
