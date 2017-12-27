@@ -14,8 +14,8 @@ import (
 
 var usage = `Usage: ben [options...]
 Options:
-  -o  output file. Default is ./ben-summary.html.
-  -d  display benchmark results to stdout. Default is true
+  -o  output file. Default is ./benchmarks.md
+  -d  display benchmark results to stdout. Default is false.
 `
 
 var defaultBenchmarkFile = "./ben-summary.html"
