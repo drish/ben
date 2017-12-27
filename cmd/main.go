@@ -18,9 +18,8 @@ Options:
   -d  display benchmark results to stdout. Default is false.
 `
 
-var defaultBenchmarkFile = "./ben-summary.html"
+var defaultBenchmarkFile = "./benchmarks.md"
 
-// TODO: add before environment
 func main() {
 	trap()
 
