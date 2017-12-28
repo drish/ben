@@ -1,6 +1,7 @@
 package ben
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/drish/ben/builders"
@@ -20,13 +21,22 @@ func (r *Runner) Run(output string, display bool) error {
 
 	for _, env := range r.config.Environments {
 
+		// set version as latest if no set
+		if env.Version == "" {
+			env.Version = "latest"
+		}
+
+		// set default command or exit
+		if env.Command == "" {
+			defaultCmd := config.DefaultCommand(env.Runtime)
+			if defaultCmd == "" {
+				return errors.New("command can not be blank")
+			}
+			env.Command = defaultCmd
+		}
+
 		before := utils.PrepareBeforeCommands(env.Before)
 		image := utils.PrepareImage(env.Runtime, env.Version)
-
-		// set default command
-		if env.Command == "" {
-			env.Command = config.DefaultCommand(env.Runtime)
-		}
 
 		command := utils.PrepareCommand(env.Command)
 

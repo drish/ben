@@ -14,7 +14,7 @@ var defaultCommands = map[string]string{
 	"golang": "go test -bench=.",
 }
 
-// Machine sizes, both for local runtime and for Hyper.sh
+// machine sizes
 var machineSizes = []string{
 	"hyper-s1", // 1 CPU  64MB
 	"hyper-s2", // 1 CPU  128MB
@@ -35,7 +35,7 @@ type Environment struct {
 	Version string   // runtime version, ie 1.9
 	Runtime string   // runtime name, ie: golang, ruby, jruby
 	Command string   // benchmark command
-	Before  []string // commands to run on container before benchmark is done
+	Before  []string // commands to run on container before benchmark
 }
 
 type Config struct {
@@ -46,7 +46,7 @@ type Config struct {
 func validateMachineSizes(sizes []string) error {
 	for _, s := range sizes {
 		if !utils.Contains(s, machineSizes) {
-			return errors.New("invalid machine size " + s)
+			return errors.Errorf("invalid machine size: %s", s)
 		}
 	}
 	return nil
@@ -54,6 +54,13 @@ func validateMachineSizes(sizes []string) error {
 
 // validates all configuration provided
 func (c *Config) Validate() error {
+
+	// validates runtimes
+	for i, env := range c.Environments {
+		if env.Runtime == "" {
+			return errors.Errorf("environment %d runtime can't be blank", i)
+		}
+	}
 
 	// validates machine sizes
 	var sizes []string
