@@ -46,121 +46,6 @@ func (l *LocalBuilder) Init() error {
 	return nil
 }
 
-// run before commands if specified and create new image
-func (l *LocalBuilder) runBeforeCommands() error {
-
-	if len(l.Before) == 0 {
-		fmt.Printf(" \033[36m no commands to run before !\n\033[m")
-		return nil
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	tmpName := utils.RandString(10)
-
-	config := &container.Config{
-		Image:      l.BenchmarkImage,
-		WorkingDir: "/tmp",
-		OpenStdin:  true,
-		Cmd:        l.Before,
-	}
-
-	// create tmp container to run `before` commands
-	c, err := l.Client.ContainerCreate(context.Background(), config, nil, nil, tmpName)
-	if err != nil {
-		fmt.Printf("\r  \033[36mrunning before commands \033[m %s ", color.RedString("failed !"))
-		return errors.Wrap(err, "failed creating container")
-	}
-
-	s := spinner.New()
-	spin := true
-	go func() {
-		defer wg.Done()
-		for spin == true {
-			time.Sleep(100 * time.Millisecond)
-			fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)", color.MagentaString(s.Next()), strings.Join(l.Before, " "))
-		}
-	}()
-
-	// start tmp container
-	err = l.Client.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{})
-	if err != nil {
-		spin = false
-		wg.Wait()
-		return errors.Wrap(err, "couldn't start container")
-	}
-
-	// wait until container exits
-	exit, errC := l.Client.ContainerWait(context.Background(), c.ID)
-	if err := errC; err != nil {
-		spin = false
-		wg.Wait()
-		return errors.Wrap(err, "failed to wait for container status")
-	}
-
-	// if some command fails on tmp container
-	// shows error outputs
-	if exit != 0 {
-
-		spin = false
-		wg.Wait()
-
-		fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)\n", color.RedString("failed !"), strings.Join(l.Before, " "))
-
-		l.showOutput(c.ID)
-
-		if err = l.removeContainer(c.ID); err != nil {
-			return errors.Wrap(err, "failed removing tmp container")
-		}
-
-		_, err := l.Client.ImageRemove(context.Background(), l.BenchmarkImage, types.ImageRemoveOptions{})
-		if err != nil {
-			return errors.Wrap(err, "failed removing benchmark image")
-		}
-
-		return errors.New("running 'before' commands failed")
-	}
-
-	oldImage := l.BenchmarkImage
-
-	// create new image
-	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
-	_, err = l.Client.ContainerCommit(context.Background(), c.ID, types.ContainerCommitOptions{Reference: imageName})
-	if err != nil {
-		spin = false
-		wg.Wait()
-		return errors.Wrap(err, "failed to create benchmark image")
-	}
-
-	// save benchmark image name
-	l.BenchmarkImage = imageName
-
-	// cleanup tmp container
-	if err = l.removeContainer(c.ID); err != nil {
-		spin = false
-		wg.Wait()
-
-		return err
-	}
-
-	// cleanup previous image
-	_, err = l.Client.ImageRemove(context.Background(), oldImage, types.ImageRemoveOptions{})
-	if err != nil {
-		spin = false
-		wg.Wait()
-
-		return errors.Wrap(err, "failed removing benchmark image")
-	}
-
-	spin = false
-	wg.Wait()
-
-	fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)\n", color.GreenString("done !"), strings.Join(l.Before, " "))
-
-	return nil
-}
-
 // PrepareImage pulls the base image and run `before` commands
 func (l *LocalBuilder) PrepareImage() error {
 
@@ -364,6 +249,121 @@ func (l *LocalBuilder) setupBaseImage() error {
 
 	// save image name
 	l.BenchmarkImage = imageName
+
+	return nil
+}
+
+// run before commands if specified and create new image
+func (l *LocalBuilder) runBeforeCommands() error {
+
+	if len(l.Before) == 0 {
+		fmt.Printf(" \033[36m no commands to run before !\n\033[m")
+		return nil
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	tmpName := utils.RandString(10)
+
+	config := &container.Config{
+		Image:      l.BenchmarkImage,
+		WorkingDir: "/tmp",
+		OpenStdin:  true,
+		Cmd:        l.Before,
+	}
+
+	// create tmp container to run `before` commands
+	c, err := l.Client.ContainerCreate(context.Background(), config, nil, nil, tmpName)
+	if err != nil {
+		fmt.Printf("\r  \033[36mrunning before commands \033[m %s ", color.RedString("failed !"))
+		return errors.Wrap(err, "failed creating container")
+	}
+
+	s := spinner.New()
+	spin := true
+	go func() {
+		defer wg.Done()
+		for spin == true {
+			time.Sleep(100 * time.Millisecond)
+			fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)", color.MagentaString(s.Next()), strings.Join(l.Before, " "))
+		}
+	}()
+
+	// start tmp container
+	err = l.Client.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{})
+	if err != nil {
+		spin = false
+		wg.Wait()
+		return errors.Wrap(err, "couldn't start container")
+	}
+
+	// wait until container exits
+	exit, errC := l.Client.ContainerWait(context.Background(), c.ID)
+	if err := errC; err != nil {
+		spin = false
+		wg.Wait()
+		return errors.Wrap(err, "failed to wait for container status")
+	}
+
+	// if some command fails on tmp container
+	// shows error outputs
+	if exit != 0 {
+
+		spin = false
+		wg.Wait()
+
+		fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)\n", color.RedString("failed !"), strings.Join(l.Before, " "))
+
+		l.showOutput(c.ID)
+
+		if err = l.removeContainer(c.ID); err != nil {
+			return errors.Wrap(err, "failed removing tmp container")
+		}
+
+		_, err := l.Client.ImageRemove(context.Background(), l.BenchmarkImage, types.ImageRemoveOptions{})
+		if err != nil {
+			return errors.Wrap(err, "failed removing benchmark image")
+		}
+
+		return errors.New("running 'before' commands failed")
+	}
+
+	oldImage := l.BenchmarkImage
+
+	// create new image
+	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
+	_, err = l.Client.ContainerCommit(context.Background(), c.ID, types.ContainerCommitOptions{Reference: imageName})
+	if err != nil {
+		spin = false
+		wg.Wait()
+		return errors.Wrap(err, "failed to create benchmark image")
+	}
+
+	// save benchmark image name
+	l.BenchmarkImage = imageName
+
+	// cleanup tmp container
+	if err = l.removeContainer(c.ID); err != nil {
+		spin = false
+		wg.Wait()
+
+		return err
+	}
+
+	// cleanup previous image
+	_, err = l.Client.ImageRemove(context.Background(), oldImage, types.ImageRemoveOptions{})
+	if err != nil {
+		spin = false
+		wg.Wait()
+
+		return errors.Wrap(err, "failed removing benchmark image")
+	}
+
+	spin = false
+	wg.Wait()
+
+	fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s (%s)\n", color.GreenString("done !"), strings.Join(l.Before, " "))
 
 	return nil
 }
