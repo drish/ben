@@ -67,6 +67,10 @@ func (l *LocalBuilder) PrepareImage() error {
 // SetupContainer creates the final benchmark container locally
 func (l *LocalBuilder) SetupContainer() error {
 
+	if l.Command == nil {
+		return errors.New("command can not be blank")
+	}
+
 	if l.BenchmarkImage == "" {
 		return errors.New("benchmark image not prepared")
 	}
@@ -191,6 +195,7 @@ func (l *LocalBuilder) pullImage() error {
 	// TODO: pull images from private repos
 	out, err := l.Client.ImagePull(context.Background(), l.Image, types.ImagePullOptions{})
 	if err != nil {
+		fmt.Printf("\r  \033[36mpreparing image \033[m %s\n", color.RedString("failed !"))
 		return errors.Wrap(err, "failed preparing image")
 	}
 
