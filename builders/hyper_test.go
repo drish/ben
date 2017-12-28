@@ -33,5 +33,6 @@ func TestBuilder_HyperBuilder_Init(t *testing.T) {
 		err := builder.Init()
 		assert.Nil(t, err)
 		assert.NotNil(t, builder.HyperClient)
+		assert.NotNil(t, builder.DockerClient)
 	})
 }
