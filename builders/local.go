@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/drish/ben/reporter"
 	"github.com/drish/ben/utils"
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -123,19 +124,15 @@ func (l *LocalBuilder) Benchmark() error {
 		return errors.Wrap(err, "failed to wait for container status")
 	}
 
-	// store container stdout
-	reader, err := l.Client.ContainerLogs(context.Background(), l.ID, types.ContainerLogsOptions{ShowStdout: true,
-		ShowStderr: true})
+	// store container logs
+	// using exec here because was having problems with encoding on ContainerLogs
+	cmd := []string{"docker", "logs", l.ID}
+	out, err := exec.Command(cmd[0], cmd[1], cmd[2]).Output()
 	if err != nil {
-		return errors.Wrap(err, "failed to fetch logs")
+		return errors.Wrap(err, "failed to copy data into container")
 	}
 
-	info, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return errors.Wrap(err, "failed to fetch logs")
-	}
-
-	l.Results = string(info)
+	l.Results = string(out)
 	spin = false
 	s.Reset()
 
@@ -172,6 +169,17 @@ func (l *LocalBuilder) Display() error {
 	fmt.Printf("  \033[36mdisplaying results\033[m \n")
 	fmt.Println(l.Results)
 	return nil
+}
+
+// Report returns data for being later written to fs
+func (l *LocalBuilder) Report() reporter.ReportData {
+	d := reporter.ReportData{
+		Image:   l.Image,
+		Results: l.Results,
+		Machine: "local",
+		Command: strings.Join(l.Command, " "),
+	}
+	return d
 }
 
 // pull runtime image

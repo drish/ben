@@ -16,6 +16,7 @@ import (
 	dockerTypes "github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
+	"github.com/drish/ben/reporter"
 	"github.com/drish/ben/utils"
 	"github.com/fatih/color"
 	hyper "github.com/hyperhq/hyper-api/client"
@@ -128,6 +129,12 @@ func (b *HyperBuilder) Cleanup() error {
 // Display writes the benchmark outputs to stdout
 func (b *HyperBuilder) Display() error {
 	return nil
+}
+
+func (b *HyperBuilder) Report() reporter.ReportData {
+	return reporter.ReportData{
+		Image: b.Image,
+	}
 }
 
 // remove image from local fs
