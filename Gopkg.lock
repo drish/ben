@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/Azure/go-ansiterm"
-  packages = [".","winterm"]
-  revision = "d6e3b3328b783f23731bc4d058875b0371ff8109"
-
-[[projects]]
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
   revision = "78439966b38d69bf38227fbf57ac8a6fee70f69a"
@@ -18,18 +12,6 @@
   packages = ["."]
   revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
   version = "v1.0.4"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/agl/ed25519"
-  packages = [".","edwards25519"]
-  revision = "5312a61534124124185d41f09206b9fef1d88403"
-
-[[projects]]
-  name = "github.com/cheggaaa/pb"
-  packages = ["."]
-  revision = "c112833d014c77e8bde723fd0158e3156951639f"
-  version = "v2.0.6"
 
 [[projects]]
   branch = "master"
@@ -45,27 +27,21 @@
 
 [[projects]]
   name = "github.com/docker/distribution"
-  packages = [".","context","digest","manifest","manifest/manifestlist","manifest/schema1","manifest/schema2","reference","registry/api/errcode","registry/api/v2","registry/client","registry/client/auth","registry/client/auth/challenge","registry/client/transport","registry/storage/cache","registry/storage/cache/memory","uuid"]
+  packages = ["digest","reference"]
   revision = "48294d928ced5dd9b378f7fd7c6f5da3ff3f2c89"
   version = "v2.6.2"
 
 [[projects]]
   name = "github.com/docker/docker"
-  packages = ["api/types","api/types/blkiodev","api/types/container","api/types/events","api/types/filters","api/types/mount","api/types/network","api/types/reference","api/types/registry","api/types/strslice","api/types/swarm","api/types/time","api/types/versions","api/types/volume","client","pkg/term","pkg/term/windows","pkg/tlsconfig"]
+  packages = ["api/types","api/types/blkiodev","api/types/container","api/types/events","api/types/filters","api/types/mount","api/types/network","api/types/reference","api/types/registry","api/types/strslice","api/types/swarm","api/types/time","api/types/versions","api/types/volume","client","pkg/tlsconfig"]
   revision = "092cba3727bb9b4a2f0e922cd6c0f93ea270e363"
   version = "v1.13.1"
 
 [[projects]]
   name = "github.com/docker/engine-api"
-  packages = ["client","client/transport","client/transport/cancellable","types","types/blkiodev","types/container","types/events","types/filters","types/network","types/reference","types/registry","types/strslice","types/swarm","types/time","types/versions"]
+  packages = ["types/strslice"]
   revision = "3d1601b9d2436a70b0dfc045a23f6503d19195df"
   version = "v0.4.0"
-
-[[projects]]
-  name = "github.com/docker/go"
-  packages = ["canonical/json"]
-  revision = "62e5ec7cf43f795986ec658df7cb317255772993"
-  version = "v1.5.1-1"
 
 [[projects]]
   name = "github.com/docker/go-connections"
@@ -80,30 +56,6 @@
   version = "v0.3.2"
 
 [[projects]]
-  name = "github.com/docker/libnetwork"
-  packages = ["resolvconf/dns"]
-  revision = "1ee720e18fe98dceda6039bdd005ffbcb359d343"
-  version = "v0.5.6"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/docker/libtrust"
-  packages = ["."]
-  revision = "aabc10ec26b754e797f9028f4589c5b7bd90dc20"
-
-[[projects]]
-  name = "github.com/docker/notary"
-  packages = [".","client","client/changelist","cryptoservice","passphrase","trustmanager","trustmanager/yubikey","trustpinning","tuf","tuf/client","tuf/data","tuf/signed","tuf/store","tuf/utils","tuf/validation"]
-  revision = "658a25c4efe1cd5e7151bd9bd4dcb99bc698a4b8"
-  version = "v0.3.0"
-
-[[projects]]
-  branch = "v1"
-  name = "github.com/dutchcoders/goftp"
-  packages = ["."]
-  revision = "ed59a591ce14ff6c19c49be14294528d11a88c37"
-
-[[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
   revision = "570b54cabe6b8eb0bc2dfce68d964677d63b5260"
@@ -116,24 +68,6 @@
   revision = "3f9db97f856818214da2e1057f8ad84803971cff"
 
 [[projects]]
-  name = "github.com/gorilla/context"
-  packages = ["."]
-  revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
-  version = "v1.1"
-
-[[projects]]
-  name = "github.com/gorilla/mux"
-  packages = ["."]
-  revision = "7f08801859139f86dfafd1c296e2cba9a80d292e"
-  version = "v1.6.0"
-
-[[projects]]
-  name = "github.com/gorilla/websocket"
-  packages = ["."]
-  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
-  version = "v1.2.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/hyperhq/hyper-api"
   packages = ["client","client/transport","client/transport/cancellable","signature","types","types/blkiodev","types/container","types/filters","types/network","types/reference","types/registry","types/strslice","types/time","types/versions"]
@@ -141,21 +75,15 @@
 
 [[projects]]
   name = "github.com/hyperhq/hypercli"
-  packages = ["api","api/client","api/client/formatter","api/client/inspect","builder/dockerignore","cli","cli/command","cli/command/formatter","cliconfig","daemon/graphdriver","distribution","distribution/metadata","distribution/xfer","dockerversion","errors","image","image/v1","layer","opts","pkg/archive","pkg/chrootarchive","pkg/fileutils","pkg/gitutils","pkg/homedir","pkg/httputils","pkg/idtools","pkg/ioutils","pkg/jsonlog","pkg/jsonmessage","pkg/longpath","pkg/mflag","pkg/mount","pkg/parsers/kernel","pkg/plugins","pkg/pools","pkg/progress","pkg/promise","pkg/random","pkg/reexec","pkg/signal","pkg/stdcopy","pkg/streamformatter","pkg/stringid","pkg/stringutils","pkg/symlink","pkg/system","pkg/tarsum","pkg/term","pkg/term/windows","pkg/urlutil","pkg/useragent","pkg/version","reference","registry","runconfig/opts","utils","utils/templates"]
+  packages = ["pkg/urlutil"]
   revision = "860cca29de31268664bf04bd7a87c3ca2c1d675e"
   version = "v1.10.16"
 
 [[projects]]
   branch = "master"
   name = "github.com/hyperhq/libcompose"
-  packages = ["config","docker","labels","logger","lookup","project","project/events","project/options","utils","yaml"]
+  packages = ["config","utils","yaml"]
   revision = "15d3a105140f968f5d4f62d2f44afd22a24a98fb"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/hyperhq/websocket-client"
-  packages = ["go/util"]
-  revision = "46dd203e143892860adbcb6268ebd672566dd537"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -168,18 +96,6 @@
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/miekg/pkcs11"
-  packages = ["."]
-  revision = "57296583125bf58643f8bac3635bc1af1d65a6df"
-
-[[projects]]
-  name = "github.com/opencontainers/runc"
-  packages = ["libcontainer/user"]
-  revision = "baf6536d6259209c3edfa2b22237af82942d3dfa"
-  version = "v0.1.1"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -204,12 +120,6 @@
   packages = ["."]
   revision = "30574f5fadef1aa5c61d4c42e936785af9f03ada"
   version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/vbatts/tar-split"
-  packages = ["archive/tar","tar/asm","tar/storage"]
-  revision = "38ec4ddb06dedbea0a895c4848b248eb38af221b"
-  version = "v0.10.2"
 
 [[projects]]
   branch = "master"
@@ -238,7 +148,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp","proxy"]
+  packages = ["context","context/ctxhttp","html","html/atom","html/charset","proxy"]
   revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
 
 [[projects]]
@@ -248,50 +158,14 @@
   revision = "83801418e1b59fb1880e363299581ee543af32ca"
 
 [[projects]]
-  name = "gopkg.in/VividCortex/ewma.v1"
-  packages = ["."]
-  revision = "b24eb346a94c3ba12c1da1e564dbac1b498a77ce"
-  version = "v1.1.1"
-
-[[projects]]
-  name = "gopkg.in/cheggaaa/pb.v2"
-  packages = ["termutil"]
-  revision = "c112833d014c77e8bde723fd0158e3156951639f"
-  version = "v2.0.6"
-
-[[projects]]
-  name = "gopkg.in/fatih/color.v1"
-  packages = ["."]
-  revision = "570b54cabe6b8eb0bc2dfce68d964677d63b5260"
-  version = "v1.5.0"
-
-[[projects]]
-  name = "gopkg.in/mattn/go-colorable.v0"
-  packages = ["."]
-  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
-  version = "v0.0.9"
-
-[[projects]]
-  name = "gopkg.in/mattn/go-isatty.v0"
-  packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
-
-[[projects]]
-  name = "gopkg.in/mattn/go-runewidth.v0"
-  packages = ["."]
-  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
-  version = "v0.0.2"
-
-[[projects]]
-  branch = "v2"
-  name = "gopkg.in/yaml.v2"
-  packages = ["."]
-  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
+  branch = "master"
+  name = "golang.org/x/text"
+  packages = ["encoding","encoding/charmap","encoding/htmlindex","encoding/internal","encoding/internal/identifier","encoding/japanese","encoding/korean","encoding/simplifiedchinese","encoding/traditionalchinese","encoding/unicode","internal/gen","internal/tag","internal/utf8internal","language","runes","transform","unicode/cldr"]
+  revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "541f1b413c26347883f87e8ab5ee06d8d508570ccd20dd349a9b888bca5ab64f"
+  inputs-digest = "7e724bcb03daee8a39475c686b6b19a675ed362fad20b2d4d89fd901d8000531"
   solver-name = "gps-cdcl"
   solver-version = 1
