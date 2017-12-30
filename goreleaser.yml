@@ -1,5 +1,5 @@
 build:
-  main: cmd/main.go
+  main: cmd/ben/main.go
   binary: ben
   goos:
     - darwin
