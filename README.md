@@ -10,14 +10,15 @@
 </p>
 
 ---
+
 Ben is a simple tool that helps you running your benchmarks on multiple hardware specs, clouds and runtime versions, so that you can focus on comparing your results.
 
+---
 <p align="center">
   <img src="https://rawgit.com/drish/ben/master/assets/demo.gif"/>
 </p>
 
-![](https://rawgit.com/drish/ben/master/assets/demo.png)
-
+---
 ## Install
 
 With `go get`
@@ -155,4 +156,4 @@ Example, if you your benchmark scripts depend on `quemu-img` library to run , yo
 
 ## LICENSE
 
-[MIT](https://github.com/drish/ben/blob/master/LICENSE)
+MIT © [Carlos Derich](https://dri.sh)
