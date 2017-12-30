@@ -22,7 +22,7 @@ $ go get https://github.com/drish/ben/cmd/ben
 
 ## Requirements
 
-- Docker 17.03.0-ce+ (for running local benchmarks)
+- Docker 17.03.0-ce+
 
 ## Supported clouds
 
