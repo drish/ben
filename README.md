@@ -13,12 +13,6 @@
 
 Ben is a simple tool that helps you running your benchmarks on multiple hardware specs, clouds and runtime versions, so that you can focus on comparing your results.
 
----
-<p align="center">
-  <img src="https://rawgit.com/drish/ben/master/assets/demo.gif"/>
-</p>
-
----
 ## Install
 
 With `go get`
@@ -73,6 +67,14 @@ It will run the commands specified on the `before` field and will create a new d
 After all benchmarks are done, you can see the results at `./benchmarks.md`
 
 Checkout the [examples](https://github.com/drish/ben/tree/master/_examples) folder for more examples.
+
+---
+
+<p align="center">
+  <img src="https://rawgit.com/drish/ben/master/assets/demo.gif"/>
+</p>
+
+---
 
 ## Running on Hyper.sh
 
