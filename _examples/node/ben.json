@@ -1,0 +1,25 @@
+{
+  "environments": [
+    {
+      "runtime": "node",
+      "version": "latest",
+      "machine": "local",
+      "before": ["npm install"],
+      "command": "npm run bench"
+    },
+    {
+      "runtime": "node",
+      "version": "carbon",
+      "machine": "local",
+      "before": ["npm install"],
+      "command": "npm run bench"
+    },
+    {
+      "runtime": "node",
+      "version": "7",
+      "machine": "local",
+      "before": ["npm install"],
+      "command": "npm run bench"
+    }
+  ]
+}
