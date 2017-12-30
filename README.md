@@ -76,8 +76,8 @@ Checkout [examples](https://github.com/drish/ben/tree/master/_examples) folder f
 
 ### More docs
 
-  * [Running on hyper.sh](https://github.com/drish/ben/docs/running-on-hyper.md)
-  * [ben.json file spec](https://github.com/drish/ben/docs/ben-json-spec.md)
+  * [Running on hyper.sh](https://github.com/drish/ben/blob/master/docs/running-on-hyper.md)
+  * [ben.json file spec](https://github.com/drish/ben/blob/master/docs/ben-json-spec.md)
 
 ## License
 
