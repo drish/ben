@@ -13,7 +13,7 @@
 Ben is a simple tool that helps you running your benchmarks on multiple hardware specs, clouds and runtime versions, so that you can focus on comparing your results.
 
 <p align="center">
-  <img src="https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif" width="200" height="400" />
+  <img src="https://rawgit.com/drish/ben/master/assets/demo.gif" width="400" height="700" />
 </p>
 
 ![](https://rawgit.com/drish/ben/master/assets/demo.png)
