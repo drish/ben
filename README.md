@@ -64,7 +64,7 @@ $ ben
 
 After all benchmarks are done, a [benchmarks.md](https://github.com/drish/ben/tree/master/_examples/go/local/benchmarks.md) file will be generated.
 
-Checkout the [examples](https://github.com/drish/ben/tree/master/_examples) folder for more examples.
+Checkout [examples](https://github.com/drish/ben/tree/master/_examples) folder for more.
 
 ---
 
