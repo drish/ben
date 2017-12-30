@@ -148,7 +148,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp","html","html/atom","html/charset","proxy"]
+  packages = ["context","context/ctxhttp","proxy"]
   revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
 
 [[projects]]
@@ -157,15 +157,9 @@
   packages = ["unix","windows"]
   revision = "83801418e1b59fb1880e363299581ee543af32ca"
 
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/text"
-  packages = ["encoding","encoding/charmap","encoding/htmlindex","encoding/internal","encoding/internal/identifier","encoding/japanese","encoding/korean","encoding/simplifiedchinese","encoding/traditionalchinese","encoding/unicode","internal/gen","internal/tag","internal/utf8internal","language","runes","transform","unicode/cldr"]
-  revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7e724bcb03daee8a39475c686b6b19a675ed362fad20b2d4d89fd901d8000531"
+  inputs-digest = "39d192e6f9c1104fba9e4c374f82a55aba363d4b0aefa6075f039014fefc9630"
   solver-name = "gps-cdcl"
   solver-version = 1
