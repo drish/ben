@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -20,6 +21,8 @@ import (
 	"github.com/drish/ben/utils"
 	"github.com/fatih/color"
 	hyper "github.com/hyperhq/hyper-api/client"
+	hyperTypes "github.com/hyperhq/hyper-api/types"
+	hyperContainer "github.com/hyperhq/hyper-api/types/container"
 	"github.com/pkg/errors"
 	spinner "github.com/tj/go-spin"
 )
@@ -31,20 +34,35 @@ var (
 	verStr = "v1.23"
 )
 
+var (
+	sizesDescription = map[string]string{
+		"s1": "s1 - 1 CPU 64MB",
+		"s2": "s2 - 1 CPU 128MB",
+		"s3": "s3 - 1 CPU 256MB",
+		"s4": "s4 - 1 CPU 512MB",
+		"m1": "m1 - 1 CPU 1GB",
+		"m2": "m2 - 2 CPU 2GB",
+		"m3": "m3 - 2 CPU 4GB",
+		"l1": "l1 - 4 CPU 4GB",
+		"l2": "l2 - 4 CPU 8GB",
+		"l3": "l3 - 8 CPU 16GB",
+	}
+)
+
 // HyperBuilder is the Hyper.sh struct for dealing with hyper runtimes
 type HyperBuilder struct {
-	Image          string
-	ID             string
-	Name           string
-	Size           string
+	Image          string // base image
+	ID             string // benchmark container ID
+	HyperSize      string
 	Before         []string
 	Command        []string
 	HyperClient    *hyper.Client
 	DockerClient   *docker.Client
 	BenchmarkImage string
+	Results        string
 }
 
-// Init is a simple start message
+// Init does requirements checks and sets up necessary variables
 func (b *HyperBuilder) Init() error {
 
 	accessKey := os.Getenv("HYPER_ACCESSKEY")
@@ -104,6 +122,10 @@ func (b *HyperBuilder) PrepareImage() error {
 		return err
 	}
 
+	if err := b.waitForImage(); err != nil {
+		return err
+	}
+
 	if err := b.removeLocalImage(); err != nil {
 		return err
 	}
@@ -111,37 +133,182 @@ func (b *HyperBuilder) PrepareImage() error {
 	return nil
 }
 
-// // SetupContainer creates the container on hyper
+// SetupContainer creates the container on hyper
 func (b *HyperBuilder) SetupContainer() error {
+
+	if b.Command == nil {
+		b.Cleanup()
+		return errors.New("command can not be blank")
+	}
+
+	if b.BenchmarkImage == "" {
+		b.Cleanup()
+		return errors.New("benchmark image not prepared")
+	}
+
+	config := &hyperContainer.Config{
+		Image:      b.BenchmarkImage,
+		WorkingDir: "/tmp",
+		OpenStdin:  true,
+		Cmd:        b.Command,
+		Labels: map[string]string{
+			"sh_hyper_instancetype": b.HyperSize,
+		},
+	}
+
+	c, err := b.HyperClient.ContainerCreate(context.Background(), config, nil, nil, "")
+	if err != nil {
+		b.Cleanup()
+		fmt.Printf("\r  \033[36mcreating benchmark container \033[m %s ", color.RedString("failed !"))
+		return errors.Wrap(err, "failed creating benchmark container")
+	}
+
+	fmt.Printf("  \033[36mcreating benchmark container \033[m %s (%s) \n", color.GreenString("done !"), sizesDescription[b.HyperSize])
+
+	b.ID = c.ID
 	return nil
 }
 
-// Benchmark runs the benchmark command
+// Benchmark runs the benchmark command on hyper
 func (b *HyperBuilder) Benchmark() error {
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	s := spinner.New()
+	spin := true
+	go func() {
+		defer wg.Done()
+		for spin == true {
+			time.Sleep(200 * time.Millisecond)
+			fmt.Printf("\r  \033[36mrunning benchmark \033[m %s (%s)", color.MagentaString(s.Next()), strings.Join(b.Command, " "))
+		}
+		fmt.Printf("\r  \033[36mrunning benchmark \033[m %s (%s)", color.GreenString("done !"), strings.Join(b.Command, " "))
+
+	}()
+
+	// start container
+	err := b.HyperClient.ContainerStart(context.Background(), b.ID, "")
+	if err != nil {
+		return errors.Wrap(err, "couldn't start container")
+	}
+
+	// wait until container exits
+	_, errC := b.HyperClient.ContainerWait(context.Background(), b.ID)
+	if err := errC; err != nil {
+		return errors.Wrap(err, "failed to wait for container status")
+	}
+
+	// store container logs
+	reader, err := b.HyperClient.ContainerLogs(context.Background(), b.ID, hyperTypes.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch logs")
+	}
+
+	info, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch logs")
+	}
+
+	b.Results = string(info)
+	spin = false
+
+	wg.Wait()
 	return nil
 }
 
-// Cleanup cleans up the environment on hyper
+// Cleanup cleans up containers on hyper
 func (b *HyperBuilder) Cleanup() error {
+
+	fmt.Println()
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	s := spinner.New()
+	spin := true
+	go func() {
+		defer wg.Done()
+		for spin == true {
+			time.Sleep(100 * time.Millisecond)
+			fmt.Printf("\r  \033[36mcleaning up container and volumes\033[m %s", color.MagentaString(s.Next()))
+		}
+		fmt.Printf("\r  \033[36mcleaning up container and volumes \033[m %s\n", color.GreenString("done !"))
+
+	}()
+
+	if b.ID == "" {
+		return errors.New("container doesn't exist")
+	}
+
+	// try to remove benchmark container
+	_, err := b.HyperClient.ContainerRemove(context.Background(), b.ID, hyperTypes.ContainerRemoveOptions{RemoveVolumes: true})
+	if err != nil {
+		return errors.Wrap(err, "failed removing container")
+	}
+
+	// delete the image
+	_, err = b.HyperClient.ImageRemove(context.Background(), b.BenchmarkImage, hyperTypes.ImageRemoveOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed removing benchmark image")
+	}
+
+	spin = false
+	wg.Wait()
 	return nil
 }
 
-// Display writes the benchmark outputs to stdout
+// Display writes the benchmark output to stdout
 func (b *HyperBuilder) Display() error {
+	fmt.Printf("  \033[36mdisplaying results\033[m \n")
+	fmt.Println(b.Results)
 	return nil
 }
 
+// Report returns data for being later written to fs
 func (b *HyperBuilder) Report() reporter.ReportData {
 	return reporter.ReportData{
-		Image: b.Image,
+		Image:   b.Image,
+		Results: b.Results,
+		Machine: "Hyper.sh cloud: " + sizesDescription[b.HyperSize],
+		Before:  strings.Join(b.Before, " "),
+		Command: strings.Join(b.Command, " "),
 	}
 }
 
-// remove image from local fs
+// NOTE: ugly workaround, hyper takes a while to make the newly craeted image available.
+// should be replaced by a checker to see if the image was uploaded every X secs
+func (h *HyperBuilder) waitForImage() error {
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	s := spinner.New()
+	spin := true
+	go func() {
+		defer wg.Done()
+		for spin == true {
+			time.Sleep(100 * time.Millisecond)
+			fmt.Printf("\r  \033[36mwaiting for image to become available \033[m %s", color.MagentaString(s.Next()))
+		}
+		fmt.Printf("\r  \033[36mwaiting for image to become available \033[m %s\n", color.GreenString("done !"))
+	}()
+
+	time.Sleep(20 * time.Second)
+	spin = false
+
+	wg.Wait()
+	return nil
+}
+
+// remove image from local docker and fs
 func (b *HyperBuilder) removeLocalImage() error {
 	_, err := b.DockerClient.ImageRemove(context.Background(), b.BenchmarkImage, dockerTypes.ImageRemoveOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed removing benchmark image")
+	}
+
+	err = os.Remove(b.BenchmarkImage + ".tar")
+	if err != nil {
+		return errors.Wrap(err, "unable to remove local image tar")
 	}
 	return nil
 }
@@ -200,7 +367,7 @@ func (b *HyperBuilder) loadOnHyper() error {
 	return nil
 }
 
-// pull runtime image
+// pull runtime base image
 func (b *HyperBuilder) pullImage() error {
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -217,7 +384,6 @@ func (b *HyperBuilder) pullImage() error {
 
 	}()
 
-	// pulls runtime image
 	// TODO: pull images from private repos
 	out, err := b.DockerClient.ImagePull(context.Background(), b.Image, dockerTypes.ImagePullOptions{})
 	if err != nil {
@@ -400,23 +566,10 @@ func (b *HyperBuilder) runBeforeCommands() error {
 }
 
 func (b *HyperBuilder) showOutput(containerID string) error {
-
-	// // store container stdout
-	// reader, err := l.Client.ContainerLogs(context.Background(), containerID, types.ContainerLogsOptions{ShowStdout: true,
-	// 	ShowStderr: true})
-	// if err != nil {
-	// 	return errors.Wrap(err, "failed to fetch logs")
-	// }
-	// defer reader.Close()
-
-	// info, err := ioutil.ReadAll(reader)
-
-	// fmt.Println()
-	// fmt.Printf(string(info))
-
 	return nil
 }
 
+// Removes local container
 func (b *HyperBuilder) removeContainer(containerID string) error {
 	err := b.DockerClient.ContainerRemove(context.Background(), containerID, dockerTypes.ContainerRemoveOptions{RemoveVolumes: true})
 	if err != nil {

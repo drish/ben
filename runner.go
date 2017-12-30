@@ -3,6 +3,7 @@ package ben
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/drish/ben/builders"
 	"github.com/drish/ben/config"
@@ -56,9 +57,10 @@ func (r *Runner) Run(output string, display bool) error {
 			reports = append(reports, rp)
 		} else {
 			builder := &builders.HyperBuilder{
-				Image:   image,
-				Before:  before,
-				Command: command,
+				Image:     image,
+				Before:    before,
+				HyperSize: strings.Split(env.Machine, "-")[1],
+				Command:   command,
 			}
 			rp, err := r.BuildRuntime(builder, output, display)
 			if err != nil {

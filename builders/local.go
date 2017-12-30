@@ -177,6 +177,7 @@ func (l *LocalBuilder) Report() reporter.ReportData {
 		Image:   l.Image,
 		Results: l.Results,
 		Machine: "local",
+		Before:  strings.Join(l.Before, " "),
 		Command: strings.Join(l.Command, " "),
 	}
 	return d

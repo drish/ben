@@ -16,6 +16,8 @@ var defaultCommands = map[string]string{
 
 // machine sizes
 var machineSizes = []string{
+
+	// hyper cloud
 	"hyper-s1", // 1 CPU  64MB
 	"hyper-s2", // 1 CPU  128MB
 	"hyper-s3", // 1 CPU  256MB
@@ -26,6 +28,8 @@ var machineSizes = []string{
 	"hyper-l1",
 	"hyper-l2",
 	"hyper-l3",
+
+	// local docker
 	"local",
 }
 

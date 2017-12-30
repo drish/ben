@@ -27,8 +27,8 @@ func main() {
 		fmt.Fprint(os.Stderr, fmt.Sprintf(usage))
 	}
 
-	outputFlag := flag.String("o", defaultBenchmarkFile, "output summary file")
-	displayFlag := flag.Bool("d", false, "display benchmark results to stdout")
+	outputFlag := flag.String("o", defaultBenchmarkFile, "OPTIONAL output summary file")
+	displayFlag := flag.Bool("d", false, "OPTIONAL display benchmark results to stdout")
 	flag.Parse()
 
 	c, err := config.ReadConfig("ben.json")
