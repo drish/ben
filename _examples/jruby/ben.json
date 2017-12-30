@@ -1,0 +1,18 @@
+{
+  "environments": [
+    {
+      "runtime": "ruby",
+      "version": "2.5",
+      "machine": "local",
+      "before": ["gem install benchmark-ips", "echo this run before"],
+      "command": "ruby bench.rb"
+    },
+    {
+      "runtime": "jruby",
+      "version": "9",
+      "machine": "local",
+      "before": ["gem install benchmark-ips", "echo hi"],
+      "command": "ruby bench.rb"
+    }
+  ]
+}

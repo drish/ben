@@ -1,0 +1,19 @@
+{
+  "environments": [
+    {
+      "runtime": "golang",
+      "machine": "local",
+      "version": "latest"
+    },
+    {
+      "runtime": "golang",
+      "machine": "local",
+      "version": "1.7"
+    },
+    {
+      "runtime": "golang",
+      "machine": "local",
+      "version": "1.3"
+    }
+  ]
+}

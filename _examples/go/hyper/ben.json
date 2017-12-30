@@ -1,0 +1,19 @@
+{
+  "environments": [
+    {
+      "runtime": "golang",
+      "machine": "hyper-s3",
+      "version": "latest"
+    },
+    {
+      "runtime": "golang",
+      "machine": "hyper-s3",
+      "version": "1.7"
+    },
+    {
+      "runtime": "golang",
+      "machine": "hyper-s3",
+      "version": "1.3"
+    }
+  ]
+}
