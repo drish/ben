@@ -12,18 +12,18 @@
 ---
 Ben is a simple tool that helps you running your benchmarks on multiple hardware specs, clouds and runtime versions, so that you can focus on comparing your results.
 
-### Install
+## Install
 
 With `go get`
 ```
 $ go get https://github.com/drish/ben 
 ```
 
-### Requirements
+## Requirements
 
 - Docker 17.09.1+
 
-### Supported clouds
+## Supported clouds
 
   * [Hyper.sh](https://hyper.sh)
   * [ECS](https://aws.amazon.com/ecs/) (coming soon.)
@@ -67,7 +67,7 @@ After all benchmarks are done, you can see the results at `./benchmarks.md`
 
 Checkout the [examples](https://github.com/drish/ben/tree/master/_examples) folder for more examples.
 
-### Running on Hyper.sh
+## Running on Hyper.sh
 
 Make sure you set
 
@@ -77,7 +77,7 @@ $ export HYPER_SECRETKEY="your secret key"
 $ export HYPER_REGION="us-west-1" // OPTIONAL will default to us-west-1 if not set
 ```
 
-### ben.json file spec
+## ben.json file spec
 
 ```
 {
@@ -147,6 +147,6 @@ Example, if you your benchmark scripts depend on `quemu-img` library to run , yo
 "before": ["apt-get install qemu-img"]
 ```
 
-# LICENSE
+## LICENSE
 
 [MIT](https://github.com/drish/ben/blob/master/LICENSE)
