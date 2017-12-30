@@ -205,12 +205,12 @@ func (b *HyperBuilder) Benchmark() error {
 		return errors.Wrap(err, "failed to fetch logs")
 	}
 
-	info, err := ioutil.ReadAll(reader)
+	results, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch logs")
 	}
 
-	b.Results = string(info)
+	b.Results = utils.StripCtlAndExtFromUnicode(string(results))
 	spin = false
 
 	wg.Wait()

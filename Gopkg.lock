@@ -157,9 +157,15 @@
   packages = ["unix","windows"]
   revision = "83801418e1b59fb1880e363299581ee543af32ca"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/text"
+  packages = ["internal/gen","internal/triegen","internal/ucd","transform","unicode/cldr","unicode/norm"]
+  revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "39d192e6f9c1104fba9e4c374f82a55aba363d4b0aefa6075f039014fefc9630"
+  inputs-digest = "d86b09d49421334e6f1ed382fe787cad2077e12848fa1a1f9e27ef18ac317afd"
   solver-name = "gps-cdcl"
   solver-version = 1

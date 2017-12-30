@@ -8,9 +8,24 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func StripCtlAndExtFromUnicode(str string) string {
+	isOk := func(r rune) bool {
+		// skip newline char
+		if r == 10 {
+			return false
+		}
+		return r < 32 || r >= 127
+	}
+	t := transform.Chain(norm.NFKD, transform.RemoveFunc(isOk))
+	str, _, _ = transform.String(t, str)
+	return str
+}
 
 func RandString(n int) string {
 	rand.Seed(time.Now().UnixNano())

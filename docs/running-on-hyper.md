@@ -28,3 +28,5 @@ Fire !
 ```
 $ ben
 ```
+
+Check out this [example](https://github.com/drish/ben/tree/master/_examples/go/hyper) for more.
