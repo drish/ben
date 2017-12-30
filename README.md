@@ -16,12 +16,12 @@ Ben is a simple tool that helps you running your benchmarks on multiple hardware
 
 With `go get`
 ```
-$ go get https://github.com/drish/ben 
+$ go get https://github.com/drish/ben/cmd/ben
 ```
 
 ## Requirements
 
-- Docker 17.09.1+
+- Docker 17.03.0-ce+
 
 ## Supported clouds
 
