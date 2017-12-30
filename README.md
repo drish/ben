@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://rawgit.com/drish/ben/master/assets/ben.png" height="180" />
-  <h3 align="center">ben (beta)</h3>
+  <h3 align="center">Ben (beta)</h3>
   <p align="center">Your benchmark assistant, written in Go.</p>
   <p align="center">
     <a href="https://travis-ci.org/drish/ben"><img src="https://travis-ci.org/drish/ben.svg?branch=master"></a>
@@ -11,7 +11,7 @@
 
 ---
 
-Ben is a simple tool that helps you running your benchmarks on multiple hardware specs, clouds and runtime versions, so that you can focus on comparing your results.
+Ben is a simple tool that helps you run your benchmarks on multiple hardware specs, clouds and runtime versions.
 
 ## Install
 
@@ -62,9 +62,7 @@ Then, in the root of your project run.
 $ ben
 ```
 
-This will tell Ben to run two benchmarks runtimes for ruby: 2.3 and 2.5, on your **local** machine using docker containers.
-It will run the commands specified on the `before` field and will create a new docker image with all set for your benchmark.
-After all benchmarks are done, you can see the results at `./benchmarks.md`
+After all benchmarks are done, a [benchmarks.md](https://github.com/drish/ben/tree/master/_examples/go/local/benchmarks.md) file will be generated.
 
 Checkout the [examples](https://github.com/drish/ben/tree/master/_examples) folder for more examples.
 
