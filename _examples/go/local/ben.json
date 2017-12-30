@@ -8,12 +8,12 @@
     {
       "runtime": "golang",
       "machine": "local",
-      "version": "1.7"
+      "version": "1.8"
     },
     {
       "runtime": "golang",
       "machine": "local",
-      "version": "1.3"
+      "version": "1.7"
     }
   ]
 }
