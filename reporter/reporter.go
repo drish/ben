@@ -11,6 +11,7 @@ type ReportData struct {
 	Machine string
 	Command string
 	Results string
+	Before  string
 }
 
 type Reporter struct {
@@ -23,6 +24,8 @@ var tmpl = `## Benchmark results
 {{range .RepData}}
 #### {{.Image}}
 **Machine**: _{{.Machine}}_
+
+**Commands before benchmark**: _{{.Before}}_
 
 **Benchmark command**: _{{.Command}}_
 ~~~
