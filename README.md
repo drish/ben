@@ -12,6 +12,12 @@
 ---
 Ben is a simple tool that helps you running your benchmarks on multiple hardware specs, clouds and runtime versions, so that you can focus on comparing your results.
 
+<p align="center">
+  <img src="https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif" width="200" height="400" />
+</p>
+
+![](https://rawgit.com/drish/ben/master/assets/demo.png)
+
 ## Install
 
 With `go get`
@@ -21,7 +27,7 @@ $ go get https://github.com/drish/ben/cmd/ben
 
 ## Requirements
 
-- Docker 17.03.0-ce+
+- Docker 17.03.0-ce+ (for running local benchmarks)
 
 ## Supported clouds
 
