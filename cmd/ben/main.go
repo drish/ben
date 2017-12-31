@@ -12,10 +12,15 @@ import (
 	"github.com/drish/ben/utils"
 )
 
+const (
+	Version = "0.2.0"
+)
+
 var usage = `Usage: ben [options...]
 Options:
   -o  output file. Default is ./benchmarks.md
   -d  display benchmark results to stdout. Default is false.
+  -v  prints current version
 `
 
 var defaultBenchmarkFile = "./benchmarks.md"
@@ -29,7 +34,13 @@ func main() {
 
 	outputFlag := flag.String("o", defaultBenchmarkFile, "OPTIONAL output summary file")
 	displayFlag := flag.Bool("d", false, "OPTIONAL display benchmark results to stdout")
+	vFlag := flag.Bool("v", false, "prints current version")
 	flag.Parse()
+
+	if *vFlag {
+		fmt.Printf("\n\r  Ben version %s\n\n", Version)
+		os.Exit(0)
+	}
 
 	c, err := config.ReadConfig("ben.json")
 	if err != nil {
