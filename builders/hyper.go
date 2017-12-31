@@ -29,7 +29,8 @@ import (
 
 var (
 	hosts = map[string]string{
-		"us-west-1": "tcp://us-west-1.hyper.sh:443",
+		"us-west-1":    "tcp://us-west-1.hyper.sh:443",
+		"eu-central-1": "tcp://eu-central-1.hyper.sh:443",
 	}
 	verStr = "v1.23"
 )
@@ -57,6 +58,7 @@ type HyperBuilder struct {
 	Before         []string
 	Command        []string
 	HyperClient    *hyper.Client
+	HyperRegion    string
 	DockerClient   *docker.Client
 	BenchmarkImage string
 	Results        string
@@ -80,6 +82,10 @@ func (b *HyperBuilder) Init() error {
 
 	host := hosts[region]
 
+	if host == "" {
+		return errors.New("invalid region set")
+	}
+
 	fmt.Printf("\r  \033[36msetting up environment on Hyper.sh %s for \033[m%s \n", region, b.Image)
 
 	httpClient := &http.Client{
@@ -90,7 +96,7 @@ func (b *HyperBuilder) Init() error {
 
 	hyperClient, err := hyper.NewClient(host, verStr, httpClient, map[string]string{}, accessKey, secretKey, region)
 	if err != nil {
-		return errors.Wrap(err, "failed to connect setup hyper.sh client")
+		return errors.Wrap(err, "failed to setup hyper.sh client")
 	}
 
 	dockerClient, err := docker.NewEnvClient()
@@ -100,6 +106,7 @@ func (b *HyperBuilder) Init() error {
 
 	b.DockerClient = dockerClient
 	b.HyperClient = hyperClient
+	b.HyperRegion = region
 	return nil
 }
 
