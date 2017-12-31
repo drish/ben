@@ -3,6 +3,7 @@
   <h3 align="center">Ben (beta)</h3>
   <p align="center">Your benchmark assistant, written in Go.</p>
   <p align="center">
+    <a href="https://goreportcard.com/report/github.com/drish/ben"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/drish/ben?style=flat-square"></a>
     <a href="https://github.com/drish/ben/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/drish/ben.svg?style=flat-square"></a>
     <a href="https://travis-ci.org/drish/ben"><img src="https://travis-ci.org/drish/ben.svg?branch=master"></a>
     <a href="https://github.com/drish/ben/blob/master/LICENSE)"><img src="http://img.shields.io/badge/license-MIT-blue.svg"></a>
