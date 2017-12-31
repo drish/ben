@@ -9,7 +9,7 @@ usage() {
 $this: download go binaries for drish/ben
 
 Usage: $this [-b] bindir [version]
-  -b sets bindir or installation directory, default "./bin"
+  -b sets bindir or installation directory, default "/usr/local/bin"
    [version] is a version number from
    https://github.com/drish/ben/releases
    If version is missing, then an attempt to find the latest will be found.
@@ -22,10 +22,10 @@ EOF
 }
 
 parse_args() {
-  #BINDIR is ./bin unless set be ENV
+  #BINDIR is /usr/local/bin unless set be ENV
   # over-ridden by flag below
 
-  BINDIR=${BINDIR:-./bin}
+  BINDIR=${BINDIR:-/usr/local/bin}
   while getopts "b:h?" arg; do
     case "$arg" in
       b) BINDIR="$OPTARG" ;;
@@ -84,6 +84,8 @@ adjust_version() {
     echo "$PREFIX: checking GitHub for latest version"
     VERSION=$(github_last_release "$OWNER/$REPO")
   fi
+  # if version starts with 'v', remove it
+  VERSION=${VERSION#v}
 }
 adjust_format() {
   # change format (tar.gz or zip) based on ARCH
@@ -111,9 +113,6 @@ is_command() {
 }
 uname_os() {
   os=$(uname -s | tr '[:upper:]' '[:lower:]')
-  case "$os" in
-    msys_nt) os="windows" ;;
-  esac
   echo "$os"
 }
 uname_arch() {
@@ -225,7 +224,7 @@ github_last_release() {
   owner_repo=$1
   giturl="https://api.github.com/repos/${owner_repo}/releases/latest"
   html=$(github_api - "$giturl")
-  version=$(echo "$html" | grep -m 1 "\"tag_name\":" | cut -f4 -d'"')
+  version=$(echo "$html" | tr ',' '\n' | grep -m 1 "\"tag_name\":" | cut -f4 -d'"')
   test -z "$version" && return 1
   echo "$version"
 }
@@ -302,9 +301,9 @@ echo "$PREFIX: found version ${VERSION} for ${OS}/${ARCH}"
 
 NAME=${BINARY}_${VERSION}_${OS}_${ARCH}
 TARBALL=${NAME}.${FORMAT}
-TARBALL_URL=${GITHUB_DOWNLOAD}/${VERSION}/${TARBALL}
-CHECKSUM=ben_checksums.txt
-CHECKSUM_URL=${GITHUB_DOWNLOAD}/${VERSION}/${CHECKSUM}
+TARBALL_URL=${GITHUB_DOWNLOAD}/v${VERSION}/${TARBALL}
+CHECKSUM=${BINARY}_${VERSION}_checksums.txt
+CHECKSUM_URL=${GITHUB_DOWNLOAD}/v${VERSION}/${CHECKSUM}
 
 # Adjust binary name if windows
 if [ "$OS" = "windows" ]; then
