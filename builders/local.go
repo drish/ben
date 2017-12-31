@@ -30,6 +30,7 @@ type LocalBuilder struct {
 	Client         *client.Client // docker client
 	Results        string         // benchmark output
 	BenchmarkImage string         // if `before` is set a new image is created
+	Context        context.Context
 }
 
 // Init initializes necessary variables
@@ -44,6 +45,7 @@ func (l *LocalBuilder) Init() error {
 	}
 
 	l.Client = cli
+	l.Context = context.Background()
 	return nil
 }
 
@@ -83,7 +85,7 @@ func (l *LocalBuilder) SetupContainer() error {
 		Cmd:        l.Command,
 	}
 
-	c, err := l.Client.ContainerCreate(context.Background(), config, nil, nil, "")
+	c, err := l.Client.ContainerCreate(l.Context, config, nil, nil, "")
 	if err != nil {
 		fmt.Printf("\r  \033[36mcreating benchmark container \033[m %s ", color.RedString("failed !"))
 		return errors.Wrap(err, "failed creating benchmark container")
@@ -113,13 +115,13 @@ func (l *LocalBuilder) Benchmark() error {
 	}()
 
 	// start container
-	err := l.Client.ContainerStart(context.Background(), l.ID, types.ContainerStartOptions{})
+	err := l.Client.ContainerStart(l.Context, l.ID, types.ContainerStartOptions{})
 	if err != nil {
 		return errors.Wrap(err, "couldn't start container")
 	}
 
 	// wait until container exits
-	_, errC := l.Client.ContainerWait(context.Background(), l.ID)
+	_, errC := l.Client.ContainerWait(l.Context, l.ID)
 	if err := errC; err != nil {
 		return errors.Wrap(err, "failed to wait for container status")
 	}
@@ -148,13 +150,13 @@ func (l *LocalBuilder) Cleanup() error {
 	}
 
 	// try to remove benchmark container
-	err := l.Client.ContainerRemove(context.Background(), l.ID, types.ContainerRemoveOptions{RemoveVolumes: true})
+	err := l.Client.ContainerRemove(l.Context, l.ID, types.ContainerRemoveOptions{RemoveVolumes: true})
 	if err != nil {
 		return errors.Wrap(err, "failed removing container")
 	}
 
 	// delete the image
-	_, err = l.Client.ImageRemove(context.Background(), l.BenchmarkImage, types.ImageRemoveOptions{})
+	_, err = l.Client.ImageRemove(l.Context, l.BenchmarkImage, types.ImageRemoveOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed removing benchmark image")
 	}
@@ -202,7 +204,7 @@ func (l *LocalBuilder) pullImage() error {
 
 	// pulls runtime image
 	// TODO: pull images from private repos
-	out, err := l.Client.ImagePull(context.Background(), l.Image, types.ImagePullOptions{})
+	out, err := l.Client.ImagePull(l.Context, l.Image, types.ImagePullOptions{})
 	if err != nil {
 		fmt.Printf("\r  \033[36mpreparing image \033[m %s\n", color.RedString("failed !"))
 		return errors.Wrap(err, "failed preparing image")
@@ -237,7 +239,7 @@ func (l *LocalBuilder) setupBaseImage() error {
 
 	// create tmp container
 	tmpName := "ben-tmp-" + utils.RandString(8)
-	c, err := l.Client.ContainerCreate(context.Background(), config, nil, nil, tmpName)
+	c, err := l.Client.ContainerCreate(l.Context, config, nil, nil, tmpName)
 	if err != nil {
 		return errors.Wrap(err, "failed creating container")
 	}
@@ -251,7 +253,7 @@ func (l *LocalBuilder) setupBaseImage() error {
 
 	// create new image
 	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
-	_, err = l.Client.ContainerCommit(context.Background(), c.ID, types.ContainerCommitOptions{Reference: imageName})
+	_, err = l.Client.ContainerCommit(l.Context, c.ID, types.ContainerCommitOptions{Reference: imageName})
 	if err != nil {
 		return errors.Wrap(err, "failed to create benchmark image")
 	}
@@ -288,7 +290,7 @@ func (l *LocalBuilder) runBeforeCommands() error {
 	}
 
 	// create tmp container to run `before` commands
-	c, err := l.Client.ContainerCreate(context.Background(), config, nil, nil, tmpName)
+	c, err := l.Client.ContainerCreate(l.Context, config, nil, nil, tmpName)
 	if err != nil {
 		fmt.Printf("\r  \033[36mrunning before commands \033[m %s ", color.RedString("failed !"))
 		return errors.Wrap(err, "failed creating container")
@@ -305,7 +307,7 @@ func (l *LocalBuilder) runBeforeCommands() error {
 	}()
 
 	// start tmp container
-	err = l.Client.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{})
+	err = l.Client.ContainerStart(l.Context, c.ID, types.ContainerStartOptions{})
 	if err != nil {
 		spin = false
 		wg.Wait()
@@ -313,7 +315,7 @@ func (l *LocalBuilder) runBeforeCommands() error {
 	}
 
 	// wait until container exits
-	exit, errC := l.Client.ContainerWait(context.Background(), c.ID)
+	exit, errC := l.Client.ContainerWait(l.Context, c.ID)
 	if err := errC; err != nil {
 		spin = false
 		wg.Wait()
@@ -335,7 +337,7 @@ func (l *LocalBuilder) runBeforeCommands() error {
 			return errors.Wrap(err, "failed removing tmp container")
 		}
 
-		_, err := l.Client.ImageRemove(context.Background(), l.BenchmarkImage, types.ImageRemoveOptions{})
+		_, err := l.Client.ImageRemove(l.Context, l.BenchmarkImage, types.ImageRemoveOptions{})
 		if err != nil {
 			return errors.Wrap(err, "failed removing benchmark image")
 		}
@@ -347,7 +349,7 @@ func (l *LocalBuilder) runBeforeCommands() error {
 
 	// create new image
 	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
-	_, err = l.Client.ContainerCommit(context.Background(), c.ID, types.ContainerCommitOptions{Reference: imageName})
+	_, err = l.Client.ContainerCommit(l.Context, c.ID, types.ContainerCommitOptions{Reference: imageName})
 	if err != nil {
 		spin = false
 		wg.Wait()
@@ -366,7 +368,7 @@ func (l *LocalBuilder) runBeforeCommands() error {
 	}
 
 	// cleanup previous image
-	_, err = l.Client.ImageRemove(context.Background(), oldImage, types.ImageRemoveOptions{})
+	_, err = l.Client.ImageRemove(l.Context, oldImage, types.ImageRemoveOptions{})
 	if err != nil {
 		spin = false
 		wg.Wait()
@@ -387,7 +389,7 @@ func (l *LocalBuilder) runBeforeCommands() error {
 func (l *LocalBuilder) showOutput(containerID string) error {
 
 	// store container stdout
-	reader, err := l.Client.ContainerLogs(context.Background(), containerID, types.ContainerLogsOptions{ShowStdout: true,
+	reader, err := l.Client.ContainerLogs(l.Context, containerID, types.ContainerLogsOptions{ShowStdout: true,
 		ShowStderr: true})
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch logs")
@@ -403,7 +405,7 @@ func (l *LocalBuilder) showOutput(containerID string) error {
 }
 
 func (l *LocalBuilder) removeContainer(containerID string) error {
-	err := l.Client.ContainerRemove(context.Background(), containerID, types.ContainerRemoveOptions{RemoveVolumes: true})
+	err := l.Client.ContainerRemove(l.Context, containerID, types.ContainerRemoveOptions{RemoveVolumes: true})
 	if err != nil {
 		return errors.Wrap(err, "failed removing container")
 	}

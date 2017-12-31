@@ -57,6 +57,7 @@ type HyperBuilder struct {
 	HyperSize      string
 	Before         []string
 	Command        []string
+	Context        context.Context
 	HyperClient    *hyper.Client
 	HyperRegion    string
 	DockerClient   *docker.Client
@@ -107,6 +108,7 @@ func (b *HyperBuilder) Init() error {
 	b.DockerClient = dockerClient
 	b.HyperClient = hyperClient
 	b.HyperRegion = region
+	b.Context = context.Background()
 	return nil
 }
 
@@ -163,7 +165,7 @@ func (b *HyperBuilder) SetupContainer() error {
 		},
 	}
 
-	c, err := b.HyperClient.ContainerCreate(context.Background(), config, nil, nil, "")
+	c, err := b.HyperClient.ContainerCreate(b.Context, config, nil, nil, "")
 	if err != nil {
 		b.Cleanup()
 		fmt.Printf("\r  \033[36mcreating benchmark container \033[m %s ", color.RedString("failed !"))
@@ -195,19 +197,19 @@ func (b *HyperBuilder) Benchmark() error {
 	}()
 
 	// start container
-	err := b.HyperClient.ContainerStart(context.Background(), b.ID, "")
+	err := b.HyperClient.ContainerStart(b.Context, b.ID, "")
 	if err != nil {
 		return errors.Wrap(err, "couldn't start container")
 	}
 
 	// wait until container exits
-	_, errC := b.HyperClient.ContainerWait(context.Background(), b.ID)
+	_, errC := b.HyperClient.ContainerWait(b.Context, b.ID)
 	if err := errC; err != nil {
 		return errors.Wrap(err, "failed to wait for container status")
 	}
 
 	// store container logs
-	reader, err := b.HyperClient.ContainerLogs(context.Background(), b.ID, hyperTypes.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	reader, err := b.HyperClient.ContainerLogs(b.Context, b.ID, hyperTypes.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch logs")
 	}
@@ -248,13 +250,13 @@ func (b *HyperBuilder) Cleanup() error {
 	}
 
 	// try to remove benchmark container
-	_, err := b.HyperClient.ContainerRemove(context.Background(), b.ID, hyperTypes.ContainerRemoveOptions{RemoveVolumes: true})
+	_, err := b.HyperClient.ContainerRemove(b.Context, b.ID, hyperTypes.ContainerRemoveOptions{RemoveVolumes: true})
 	if err != nil {
 		return errors.Wrap(err, "failed removing container")
 	}
 
 	// delete the image
-	_, err = b.HyperClient.ImageRemove(context.Background(), b.BenchmarkImage, hyperTypes.ImageRemoveOptions{})
+	_, err = b.HyperClient.ImageRemove(b.Context, b.BenchmarkImage, hyperTypes.ImageRemoveOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed removing benchmark image")
 	}
@@ -308,7 +310,7 @@ func (h *HyperBuilder) waitForImage() error {
 
 // remove image from local docker and fs
 func (b *HyperBuilder) removeLocalImage() error {
-	_, err := b.DockerClient.ImageRemove(context.Background(), b.BenchmarkImage, dockerTypes.ImageRemoveOptions{})
+	_, err := b.DockerClient.ImageRemove(b.Context, b.BenchmarkImage, dockerTypes.ImageRemoveOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed removing benchmark image")
 	}
@@ -358,7 +360,7 @@ func (b *HyperBuilder) loadOnHyper() error {
 		return err
 	}
 
-	resp, err := b.HyperClient.ImageLoadLocal(context.Background(), true, info.Size())
+	resp, err := b.HyperClient.ImageLoadLocal(b.Context, true, info.Size())
 	if err != nil {
 		return err
 	}
@@ -392,7 +394,7 @@ func (b *HyperBuilder) pullImage() error {
 	}()
 
 	// TODO: pull images from private repos
-	out, err := b.DockerClient.ImagePull(context.Background(), b.Image, dockerTypes.ImagePullOptions{})
+	out, err := b.DockerClient.ImagePull(b.Context, b.Image, dockerTypes.ImagePullOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed preparing image")
 	}
@@ -426,7 +428,7 @@ func (b *HyperBuilder) setupBaseImage() error {
 
 	// create tmp container
 	tmpName := "ben-tmp-" + utils.RandString(8)
-	c, err := b.DockerClient.ContainerCreate(context.Background(), config, nil, nil, tmpName)
+	c, err := b.DockerClient.ContainerCreate(b.Context, config, nil, nil, tmpName)
 	if err != nil {
 		return errors.Wrap(err, "failed creating container")
 	}
@@ -441,7 +443,7 @@ func (b *HyperBuilder) setupBaseImage() error {
 
 	// create new image
 	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
-	_, err = b.DockerClient.ContainerCommit(context.Background(), c.ID, dockerTypes.ContainerCommitOptions{Reference: imageName})
+	_, err = b.DockerClient.ContainerCommit(b.Context, c.ID, dockerTypes.ContainerCommitOptions{Reference: imageName})
 	if err != nil {
 		return errors.Wrap(err, "failed to create benchmark image")
 	}
@@ -478,7 +480,7 @@ func (b *HyperBuilder) runBeforeCommands() error {
 	}
 
 	// create tmp container to run `before` commands
-	c, err := b.DockerClient.ContainerCreate(context.Background(), config, nil, nil, tmpName)
+	c, err := b.DockerClient.ContainerCreate(b.Context, config, nil, nil, tmpName)
 	if err != nil {
 		fmt.Printf("\r  \033[36mrunning 'before' commands \033[m %s ", color.RedString("failed !"))
 		return errors.Wrap(err, "failed creating container")
@@ -495,7 +497,7 @@ func (b *HyperBuilder) runBeforeCommands() error {
 	}()
 
 	// start tmp container
-	err = b.DockerClient.ContainerStart(context.Background(), c.ID, dockerTypes.ContainerStartOptions{})
+	err = b.DockerClient.ContainerStart(b.Context, c.ID, dockerTypes.ContainerStartOptions{})
 	if err != nil {
 		spin = false
 		wg.Wait()
@@ -503,7 +505,7 @@ func (b *HyperBuilder) runBeforeCommands() error {
 	}
 
 	// wait until container exits
-	exit, errC := b.DockerClient.ContainerWait(context.Background(), c.ID)
+	exit, errC := b.DockerClient.ContainerWait(b.Context, c.ID)
 	if err := errC; err != nil {
 		spin = false
 		wg.Wait()
@@ -525,7 +527,7 @@ func (b *HyperBuilder) runBeforeCommands() error {
 			return errors.Wrap(err, "failed removing tmp container")
 		}
 
-		_, err := b.DockerClient.ImageRemove(context.Background(), b.BenchmarkImage, dockerTypes.ImageRemoveOptions{Force: true, PruneChildren: true})
+		_, err := b.DockerClient.ImageRemove(b.Context, b.BenchmarkImage, dockerTypes.ImageRemoveOptions{Force: true, PruneChildren: true})
 		if err != nil {
 			return errors.Wrap(err, "failed removing benchmark image")
 		}
@@ -537,7 +539,7 @@ func (b *HyperBuilder) runBeforeCommands() error {
 
 	// create new image
 	imageName := "ben-final-" + strings.ToLower(utils.RandString(4))
-	_, err = b.DockerClient.ContainerCommit(context.Background(), c.ID, dockerTypes.ContainerCommitOptions{Reference: imageName})
+	_, err = b.DockerClient.ContainerCommit(b.Context, c.ID, dockerTypes.ContainerCommitOptions{Reference: imageName})
 	if err != nil {
 		spin = false
 		wg.Wait()
@@ -556,7 +558,7 @@ func (b *HyperBuilder) runBeforeCommands() error {
 	}
 
 	// cleanup previous image
-	_, err = b.DockerClient.ImageRemove(context.Background(), oldImage, dockerTypes.ImageRemoveOptions{Force: true, PruneChildren: true})
+	_, err = b.DockerClient.ImageRemove(b.Context, oldImage, dockerTypes.ImageRemoveOptions{Force: true, PruneChildren: true})
 	if err != nil {
 		spin = false
 		wg.Wait()
@@ -578,7 +580,7 @@ func (b *HyperBuilder) showOutput(containerID string) error {
 
 // Removes local container
 func (b *HyperBuilder) removeContainer(containerID string) error {
-	err := b.DockerClient.ContainerRemove(context.Background(), containerID, dockerTypes.ContainerRemoveOptions{RemoveVolumes: true})
+	err := b.DockerClient.ContainerRemove(b.Context, containerID, dockerTypes.ContainerRemoveOptions{RemoveVolumes: true})
 	if err != nil {
 		return errors.Wrap(err, "failed removing container")
 	}
