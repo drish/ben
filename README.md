@@ -12,7 +12,7 @@
 
 ---
 
-Ben is a simple tool that helps you run your benchmarks on multiple hardware specs, clouds and runtime versions.
+Ben is a simple tool that helps you run your benchmarks on multiple hardware specs, clouds and runtime versions, so that you can easily compare you results against different environments.
 
 ## Install
 
