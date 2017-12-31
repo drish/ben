@@ -20,6 +20,12 @@ With `go get`
 $ go get https://github.com/drish/ben/cmd/ben
 ```
 
+or with `curl`
+
+```
+curl -sf https://raw.githubusercontent.com/drish/ben/master/install.sh | sh
+```
+
 ## Requirements
 
 - Docker 17.03.0-ce+
