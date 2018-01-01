@@ -284,7 +284,7 @@ func (b *HyperBuilder) Report() reporter.ReportData {
 	}
 }
 
-// NOTE: ugly workaround, hyper takes a while to make the newly craeted image available.
+// NOTE: ugly workaround, hyper takes a while to make the newly created image available.
 // should be replaced by a checker to see if the image was uploaded every X secs
 func (h *HyperBuilder) waitForImage() error {
 	var wg sync.WaitGroup
