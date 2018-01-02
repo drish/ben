@@ -574,7 +574,22 @@ func (b *HyperBuilder) runBeforeCommands() error {
 	return nil
 }
 
+// show container logs of a local container
 func (b *HyperBuilder) showOutput(containerID string) error {
+
+	reader, err := b.DockerClient.ContainerLogs(b.Context, containerID, dockerTypes.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch logs")
+	}
+
+	results, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch logs")
+	}
+
+	fmt.Println()
+	fmt.Printf(utils.StripCtlAndExtFromUnicode(string(results)))
+
 	return nil
 }
 
