@@ -69,6 +69,19 @@ func TestBuilder_LocalBuilder_SetupContainer(t *testing.T) {
 	})
 }
 
+func TestBuilder_LocalBuilder_Report(t *testing.T) {
+
+	builder := &LocalBuilder{
+		Image:   "golang:1.4",
+		Command: []string{"ls", "-lah"},
+	}
+	builder.Init()
+	builder.PrepareImage()
+	builder.SetupContainer()
+	d := builder.Report()
+	assert.NotNil(t, d)
+}
+
 func TestBuilder_LocalBuilder_Cleanup(t *testing.T) {
 
 	t.Run("sucessfull cleanup", func(t *testing.T) {

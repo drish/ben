@@ -23,14 +23,15 @@ import (
 
 // LocalBuilder is the local struct for managing with local runtimes
 type LocalBuilder struct {
-	Image          string         // runtime base image
-	Command        []string       // benchmark command
-	Before         []string       // commands to run before bench
-	ID             string         // benchmark container id
-	Client         *client.Client // docker client
-	Results        string         // benchmark output
-	BenchmarkImage string         // if `before` is set a new image is created
-	Context        context.Context
+	Image          string          // runtime base image
+	Command        []string        // benchmark command
+	Before         []string        // commands to run before bench
+	ID             string          // benchmark container id
+	Client         *client.Client  // docker client
+	Results        string          // benchmark output
+	BenchmarkImage string          // if `before` is set a new image is created
+	Context        context.Context // context background
+	DockerVersion  types.Version   // docker info
 }
 
 // Init initializes necessary variables
@@ -46,6 +47,10 @@ func (l *LocalBuilder) Init() error {
 
 	l.Client = cli
 	l.Context = context.Background()
+
+	version, err := l.Client.ServerVersion(l.Context)
+	l.DockerVersion = version
+
 	return nil
 }
 
@@ -181,6 +186,11 @@ func (l *LocalBuilder) Report() reporter.ReportData {
 		Machine: "local",
 		Before:  strings.Join(l.Before, " "),
 		Command: strings.Join(l.Command, " "),
+		V:       l.DockerVersion.Version,
+		GoV:     l.DockerVersion.GoVersion,
+		APIV:    l.DockerVersion.APIVersion,
+		Os:      l.DockerVersion.Os,
+		Arch:    l.DockerVersion.Arch,
 	}
 	return d
 }

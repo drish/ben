@@ -12,6 +12,13 @@ type ReportData struct {
 	Command string
 	Results string
 	Before  string
+
+	// docker info
+	V    string
+	GoV  string
+	Arch string
+	Os   string
+	APIV string
 }
 
 type Reporter struct {
@@ -25,6 +32,14 @@ var tmpl = `## Benchmark results
 #### {{.Image}}
 
 **Machine**: _{{.Machine}}_
+
+**Docker Info**:
+
+* Version: {{.V}}
+* API Version: {{.APIV}}
+* Go Version: {{.GoV}}
+* OS: {{.Os}}
+* Arch: {{.Arch}}
 
 **Commands before benchmark**: _{{.Before}}_
 
